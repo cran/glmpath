@@ -1,0 +1,4 @@
+useDynLib(glmpath)
+
+export(cv.glmpath, glmpath, plot.glmpath, predict.glmpath)
+

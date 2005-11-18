@@ -1,0 +1,8 @@
+corrector1	Function to perform a corrector step.
+cv.glmpath	Cross-validation of glmpath.
+glmpath		Function to generate the GLM path.
+plot.glmpath	Function to plot the GLM path.
+predictor1	Function to perform a predictor step.
+predict.glmpath	Function to predict at any point of the GLM path.
+print.glmpath	Function to print the meaningful steps of glmpath.
+step.length	Function to compute the step length in lambda.
