@@ -1,45 +1,32 @@
-\name{glmpath}
-\alias{glmpath}
+\name{coxpath}
+\alias{coxpath}
 \title{
-  Fits the entire L1 regularization path for generalized linear models
+  Fits the entire L1 regularization path for Cox proportional hazards
+  model
 }
 \description{
   This algorithm uses predictor-corrector method to compute the
-  entire regularization path for generalized linear models with L1
+  entire regularization path for Cox proportional hazards model with L1
   penalty.
 }
 \usage{
-  glmpath(x, y, data, family = binomial, weight = rep(1,length(y)),
-          lambda2 = 1e-5, max.steps = NULL, max.norm = 100*ncol(x),
-          min.lambda = 0, max.arclength = Inf, add.newvars = 1,
-          bshoot.threshold = 0.1, relax.lambda = 1e-8,
+  coxpath(data, method = c("breslow", "efron"),
+          max.steps = NULL, max.norm = 100*ncol(data$x),
+          min.lambda = 0, max.arclength = Inf,
+          add.newvars = 1, bshoot.threshold = 0.1,
+          relax.lambda = 1e-7, approx.Gram = FALSE,
           eps = .Machine$double.eps, trace = FALSE)
 }
 \arguments{
-\item{x}{
-  matrix of features
-}
-\item{y}{
-  response 
-}
 \item{data}{
-  a list consisting of \code{x:} a matrix of features and \code{y:}
-  response. \code{data} is not needed if above \code{x} and \code{y} are
-  input separately.
+  a list consisting of \code{x:} a matrix of features, \code{time:}
+  the survival time, and \code{status:} censor status with 1 if died and
+  0 if censored. 
 }
-\item{family}{
-  name of a family function that represents the distribution of y to be
-  used in the model. It must be \code{binomial}, \code{gaussian}, or
-  \code{poisson}. For each one, the canonical link function is used;
-  \code{logit} for binomial, \code{identity} for gaussian, and
-  \code{log} for poisson distribution. Default is \code{binomial.}
-}
-\item{weight}{
-  an optional vector of weights for observations
-}
-\item{lambda2}{
-  regularization parameter for the L2 norm of the coefficients. Default
-  is \code{1e-5.}
+\item{method}{
+  approximation method for tied survival times. Approximations derived
+  by Breslow (1974) and Efron (1977) are available. Default is
+  \code{breslow.}
 }
 \item{max.steps}{
   an optional bound for the number of steps to be taken. Default is
@@ -50,8 +37,12 @@
   \code{100 * ncol(x).}
 }
 \item{min.lambda}{
-  an optional (lower) bound for the size of \eqn{\lambda}. Default is
-  \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-6} otherwise.
+  an optional (lower) bound for the size of \eqn{\lambda}. When
+  \code{ncol(x)} is relatively large, the coefficient estimates are
+  prone to numerical precision errors at extremely small
+  \eqn{\lambda}. In such cases, early stopping is recommended (using
+  \code{max.steps,} \code{max.norm,} or \code{min.lambda}). Default is
+  \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-3} otherwise.
 }
 \item{max.arclength}{
   an optional bound for arc length (L1 norm) of a step. If
@@ -73,12 +64,18 @@
 }
 \item{relax.lambda}{
   A variable joins the active set if \eqn{|l'(\beta)| >
-    \lambda}(1-\code{relax.lambda}). Default is \code{1e-8.} If no
+    \lambda}(1-\code{relax.lambda}). Default is \code{1e-7.} If no
   variable joins the active set even after many (>20) steps, the user
-  should increase \code{relax.lambda} to \code{1e-7} or \code{1e-6,} but
+  should increase \code{relax.lambda} to \code{1e-6} or \code{1e-5,} but
   not more than that. This adjustment is sometimes needed because of the
   numerical precision/error propagation problems. In general, the paths
   are less accurate with relaxed lambda.     
+}
+\item{approx.Gram}{
+  If \code{TRUE,} an approximated Gram matrix is used in predictor
+  steps; each step takes less number of computations, but the total
+  number of steps usually increases. This might be useful when the
+  number of features is large.
 }
 \item{eps}{
   an effective zero
@@ -88,18 +85,16 @@
 }
 }
 \value{
-  A \code{glmpath} object is returned.
+  A \code{coxpath} object is returned.
   \item{lambda}{
     vector of \eqn{\lambda} values for which exact coefficients are computed
-  }
-  \item{lambda2}{
-    \eqn{\lambda_2} used
   }
   \item{step.length}{
     vector of step lengths in \eqn{\lambda}
   }
   \item{corr}{
-    matrix of \eqn{l'(\beta)} values (derivatives of the log-likelihood)
+    matrix of \eqn{l'(\beta)} values (derivatives of the
+    log-partial-likelihood)
   }
   \item{new.df}{
     vector of degrees of freedom (to be used in the plot function)
@@ -107,8 +102,8 @@
   \item{df}{
     vector of degrees of freedom at each step
   }
-  \item{deviance}{
-    vector of deviance computed at each step
+  \item{loglik}{
+    vector of log-partial-likelihood computed at each step
   }
   \item{aic}{
     vector of AIC values 
@@ -134,11 +129,8 @@
   \item{xnames}{
     column names of x
   }
-  \item{family}{
-    family used
-  }
-  \item{weight}{
-    weights used
+  \item{method}{
+    method used
   }
 }
 \details{
@@ -152,7 +144,7 @@
 
   We thank Michael Saunders of SOL, Stanford University for providing
   the solver used for the convex optimization in corrector steps of
-  glmpath.
+  coxpath.
 }
 \references{
   Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
@@ -162,14 +154,14 @@
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{
-cv.glmpath, plot.glmpath, predict.glmpath
+cv.coxpath, plot.coxpath, predict.coxpath
 }
 \examples{
-data(heart.data)
-attach(heart.data)
-fit.a <- glmpath(x, y, family=binomial)
-fit.b <- glmpath(x, y, family=gaussian)
-detach(heart.data)
+data(lung.data)
+attach(lung.data)
+fit.a <- coxpath(lung.data)
+fit.b <- coxpath(lung.data, method="efron")
+detach(lung.data)
 }
 \keyword{models}
 \keyword{regression}

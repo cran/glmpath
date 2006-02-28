@@ -3,26 +3,41 @@
   Internal glmpath functions
 }
 \alias{corrector1}
+\alias{corrector.cox}
+\alias{logplik}
 \alias{predictor1}
-\alias{step.length}
+\alias{predictor.cox}
+\alias{print.coxpath}
 \alias{print.glmpath}
+\alias{step.length}
+\alias{step.length.cox}
 \usage{
-corrector1(x, y, family, weight, k, active, tmpa, lambda, b0, a0, M0,
-           bshoot.threshold, relax.lambda, trace, no.iter = FALSE,
-           eps = .Machine$double.eps)
+corrector1(x, y, family, weight, active, tmpa, lambda, lambda2,
+          b0, a0, M0, bshoot.threshold, relax.lambda, trace,
+          no.iter = FALSE, eps = .Machine$double.eps)
+corrector.cox(x, y, d, rslist, wlist, rept, method, active, tmpa,
+              lambda, b0, a0, M0, bshoot.threshold, relax.lambda,
+              trace, eps = .Machine$double.eps)
+logplik(x, time, status, b, method = c("breslow", "efron"),
+        return.all=FALSE)
 predictor1(b, step)
-step.length(corrector, min.lambda, max.arclength, add.newvars, backshoot,
-            h0=NULL, eps=.Machine$double.eps)
+predictor.cox(b, step)
+print.coxpath(x, ...)
 print.glmpath(x, ...)
+step.length(corrector, lambda2, min.lambda, max.arclength, add.newvars,
+            backshoot, h0=NULL, eps=.Machine$double.eps)
+step.length.cox(corrector, x, d, rslist, wlist, min.lambda,
+                max.arclength, add.newvars, backshoot, approx.Gram,
+                h0=NULL, eps=.Machine$double.eps)
 }
 \description{
   Internal glmpath functions
 }
 \references{
-  Mee Young Park and Trevor Hastie (2005) L1 Regularization Path
-Algorithm for Generalized Linear Models - This will be soon available at the
-authors' websites, \url{http://www.stanford.edu/~mypark} or
-\url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
+  Algorithm for Generalized Linear Models - available at the authors'
+  websites, \url{http://www.stanford.edu/~mypark} or
+  \url{http://stat.stanford.edu/~hastie/pub.htm}.
 }
 \author{Mee Young Park and Trevor Hastie}
 \keyword{internal}

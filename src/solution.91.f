@@ -1,8 +1,8 @@
-      subroutine solution ( k, nobs, n, nb, ne, 
+      subroutine solution ( k, n, nb, ne, 
      &                      hs, xn, zsmall, lenz, inform )
 
       implicit           double precision (a-h,o-z)
-      integer            k, nobs, n, nb, ne, lenz, inform
+      integer            k, n, nb, ne, lenz, inform
       integer*4          hs(nb)
       double precision   xn(nb), zsmall(lenz)
 *     ------------------------------------------------------------------
@@ -30,16 +30,16 @@
       
       call mistart( iprint, isumm, ispecs )  ! Initialize MINOS and open
 *     ------------------------------------------------------------------
-*     User workspace: 1  +  1   +  1  + 7 + (p+1)*nobs + nobs
-*                   (lam) (dist) (link)(b)  (x, y data)  (w)  
+*     User workspace: 1  +  1  +  1  +  1  +  1  + 7 + (p+1)*nobs + nobs
+*                  (nobs)(lam) (lam2)(dist)(link) (b)  (x, y data)  (w)  
 *     ------------------------------------------------------------------
       call miopti( 'Workspace (user) ', lenz, 0, 0, inform )
       call miopti( 'LOG FREQUENCY ', 0, 0, 0, inform )
       call miopti( 'PRINT LEVEL ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FILE ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FREQUENCY ', 0, 0, 0, inform )
-      call miopti( 'SUPERBASICS LIMIT ', (k+2), 0, 0, inform )
-      call miopti( 'PROBLEM NUMBER ', nobs, 0, 0, inform )
+      call miopti( 'SUPERBASICS LIMIT ', n, 0, 0, inform )
+      call miopti( 'PROBLEM NUMBER ', 1, 0, 0, inform )
 *     ------------------------------------------------------------------
 *     Now set parameters for moniss
 *     ------------------------------------------------------------------
@@ -120,28 +120,59 @@
       subroutine funobj( mode, n, x, f, g, nstate, nprob, z, nwcore )
 
       implicit           double precision (a-h,o-z)
-      integer            n, nprob, nwcore, mode, nstate
-      double precision   x(n), g(n), f, z(nwcore)
+      integer            mode, n, nstate, nprob, nwcore
+      double precision   x(n), f, g(n), z(nwcore)
 
-      integer            i, j, ii, nobs, p
-      double precision   lam, dstr,
-     &                   eta(nprob), mu(nprob), wt(nprob), 
-     &                   y(nprob), resid(nprob), xi(nprob), 
-     &                   loglik, ddot
-*     zero, one
-      double precision   zero,          one,          two    
-      parameter         (zero = 0.0d+0, one = 1.0d+0, two = 2.0d+0)
+      integer            nobs, p, method
+      double precision   lam, lam2, dstr
 *     ------------------------------------------------------------------
+*     User workspace: 1  +  1  +  1  +  1  +  1  + 7 + (p+1)*nobs + nobs
+*                  (nobs)(lam) (lam2)(dist)(link) (b)  (x, y data)  (w)  
 *     ------------------------------------------------------------------
-*     User workspace: 1  +  1   +  1  + 7 + (p+1)*nobs + nobs
-*                   (lam) (dist) (link)(b)  (x, y data)  (w)  
-*     ------------------------------------------------------------------
+
       mode = mode
       nstate = nstate
-      nobs = nprob
+      nprob = nprob
+      nobs = int(z(1))
+      lam = z(2)
       p = n - 1
-      lam = z(1)
-      dstr = z(2)
+
+      if (nprob .eq. 1) then
+         lam2 = z(3)
+         dstr = z(4)
+         method = 0
+         call subfunobj( n, x, f, g, z, nwcore, nobs, 
+     $                   lam, lam2, dstr, p )
+      else
+         method = int(z(3))
+         lam2 = 0.0d+0
+         dstr = 0.0d+0
+         call subfunobjcox( n, x, f, g, z, nwcore, nobs, 
+     $                      lam, method, p )
+      endif 
+
+      return
+
+      end
+
+*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+      subroutine subfunobj( n, x, f, g, z, nwcore,
+     $                      nobs, lam, lam2, dstr, p )  
+
+      integer            n, nwcore, nobs, p
+      double precision   x(n), g(n), f, z(nwcore),
+     &                   lam, lam2, dstr
+
+      integer            i, j, ii
+      double precision   eta(nobs), mu(nobs), resid(nobs),
+     &                   xi(nobs), y(nobs), wt(nobs),
+     &                   loglik, ddot, norm2
+*     -------------------------------------------------------------
+      double precision   zero,          one,          two    
+      parameter         (zero = 0.0d+0, one = 1.0d+0, two = 2.0d+0)
+*     -------------------------------------------------------------
+
       ii = 10 
       do 200 i = 1, nobs
          eta(i) = zero
@@ -157,21 +188,26 @@
          if (dstr .eq. one) then 
             mu(i) = one/(one+exp(-eta(i)))
             loglik = loglik + wt(i)*(y(i)*eta(i)-log(one+exp(eta(i))))
-            resid(i) = wt(i)*(y(i) - mu(i))
          else if (dstr .eq. two) then
             mu(i) = exp(eta(i))
             loglik = loglik + wt(i)*(y(i)*eta(i) - mu(i))
-            resid(i) = wt(i)*(y(i) - mu(i))
          end if
+         resid(i) = wt(i)*(y(i) - mu(i))
  300  continue      
-      f = -loglik + lam*x(p+1)
-      do 500 i = 1, p
-         ii = 10 + (i-1)*nobs
-         do 400 j = 1, nobs
-            xi(j) = -1*z(ii + j)
+      do 350 i = 2, p
+         norm2 = norm2 + x(i)**2
+ 350  continue
+      f = -loglik + lam*x(p+1) + 0.5*lam2*norm2
+      do 500 j = 1, p
+         ii = 10 + (j-1)*nobs
+         do 400 i = 1, nobs
+            xi(i) = -1*z(ii + i)
  400     continue
-         g(i) = ddot (nobs, xi, 1, resid, 1)
+         g(j) = ddot (nobs, xi, 1, resid, 1)
  500  continue
+      do 550 j = 2, p
+         g(j) = g(j) + lam2*x(j)
+ 550  continue
       g(p+1) = lam
 
       return

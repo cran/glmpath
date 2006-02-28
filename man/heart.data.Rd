@@ -3,7 +3,7 @@
 \docType{data}
 \title{Dataset for glmpath}
 \description{
-  \code{South African Heart Disease dataset} used to test \code{glmpath}
+  \emph{South African Heart Disease dataset} used to test \code{glmpath}
   algorithm
 }
 \usage{
@@ -15,7 +15,7 @@ data(heart.data)
   \describe{
     \item{x}{x contains 9 columns of the following variables:
       sbp (systolic blood pressure); tobacco (cumulative tobacco); ldl
-      (low densiity lipoprotein cholesterol); adiposity; famhist (family
+      (low density lipoprotein cholesterol); adiposity; famhist (family
       history of heart disease); typea (type-A behavior); obesity;
       alcohol (current alcohol consumption); age (age at onset)}
     \item{y}{response, coronary heart disease}

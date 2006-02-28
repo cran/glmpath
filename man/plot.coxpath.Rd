@@ -1,23 +1,23 @@
-\name{plot.glmpath}
-\alias{plot.glmpath}
+\name{plot.coxpath}
+\alias{plot.coxpath}
 \title{
-  Plots the entire regularization path computed from glmpath
+  Plots the entire regularization path computed from coxpath
 }
 \description{
-  This function takes a \code{glmpath} object and visualizes the
+  This function takes a \code{coxpath} object and visualizes the
   regularization path. The horizontal axis can be \code{norm,}
   \code{lambda} or \code{step.} The vertical axis can be
   \code{coefficients,} \code{aic} or \code{bic.}
 }
 \usage{
-  plot.glmpath(x, xvar = c("norm", "lambda", "step"),
+  plot.coxpath(x, xvar = c("norm", "lambda", "step"),
                type = c("coefficients", "aic", "bic"), xlimit = NULL,
                predictor = FALSE, omit.zero = TRUE, breaks = TRUE,
-               mar = NULL, eps = .Machine$double.eps, main = NULL, ...)
+               mar = NULL, main = NULL, eps = .Machine$double.eps, ...)
 }
 \arguments{
 \item{x}{
-  a \code{glmpath} object
+  a \code{coxpath} object
 }
 \item{xvar}{
   horizontal axis. \code{xvar=norm} plots against the L1 norm of the
@@ -39,8 +39,8 @@
   corrector step estimates are connected with solid lines.
 }
 \item{omit.zero}{
-  If \code{TRUE} and \code{type=coefficients,} the predictors that were
-  never in the active set are omitted.
+  If \code{TRUE,} the predictors that were never in the active set are
+  omitted.
 }
 \item{breaks}{
   If \code{TRUE,} vertical lines are drawn at the points where the
@@ -49,11 +49,11 @@
 \item{mar}{
   margin relative to the current font size
 }
-\item{eps}{
-  an effective zero
-}
 \item{main}{
   title of the plot
+}
+\item{eps}{
+  an effective zero
 }
 \item{...}{
   other options for the plot
@@ -67,12 +67,12 @@
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{
-cv.glmpath, glmpath, predict.glmpath
+cv.coxpath, coxpath, predict.coxpath
 }
 \examples{
-data(heart.data)
-attach(heart.data)
-fit <- glmpath(x, y, family=binomial)
+data(lung.data)
+attach(lung.data)
+fit <- coxpath(lung.data)
 par(mfrow=c(3,2))
 plot(fit)
 plot(fit,xvar="lambda")
@@ -80,7 +80,7 @@ plot(fit,xvar="step")
 plot(fit,xvar="step",xlimit=8)
 plot(fit,type="aic")
 plot(fit,type="bic")
-detach(heart.data)
+detach(lung.data)
 }
 \keyword{models}
 \keyword{regression}

@@ -1,12 +1,13 @@
-"step.length" <- function(corrector, min.lambda, max.arclength, add.newvars, backshoot, h0=NULL, eps=.Machine$double.eps)
+"step.length" <- function(corrector, lambda2, min.lambda, max.arclength, add.newvars, backshoot, h0=NULL, eps=.Machine$double.eps)
   {
     active <- corrector$active
     lambda <- corrector$lambda - min.lambda
+    Lambda2 <- c(0, rep(lambda2, length(active)-1))
     C <- corrector$corr
     b <- corrector$b[active]
     xw <- corrector$xw
     xwx <- t(xw) %*% xw[ ,active]
-    xwx.in <- solve(xwx[active, ])
+    xwx.in <- solve(xwx[active, ] + diag(Lambda2))
     db <- drop(xwx.in %*% c(0, sign(C[active[-1]])))
     newa <- NULL
     if (!backshoot) {
@@ -16,7 +17,7 @@
       a <- drop(xwx[inactive, ] %*% db)
       gam <- c((Cmax - C[inactive])/(1 - a), (Cmax + C[inactive])/(1 + a))
       ha <- min(gam[gam > eps], lambda)
-      hd <- -b[-1]/drop(db[-1])
+      hd <- -b[-1]/db[-1]
       h <- min(hd[hd > eps], ha)
       if (h==ha & h < lambda) {
         ii <- which(gam > eps)
@@ -30,7 +31,7 @@
       h <- min(h, max.arclength/sum(abs(db)))
     }
     else {
-      hd <- b/db
+      hd <- b[-1]/db[-1]
       ii <- hd > eps & hd < -h0
       if (any(ii)) h <- -max(hd[ii])
       else h = 0
@@ -43,29 +44,27 @@
     b - step$db * step$h
   }
 
-"corrector1" <- function(x, y, family, weight, k, active, tmpa, lambda, b0, a0, M0, bshoot.threshold, relax.lambda, trace, no.iter = FALSE, eps = .Machine$double.eps)
+"corrector1" <- function(x, y, family, weight, active, tmpa, lambda, lambda2, b0, a0, M0, bshoot.threshold, relax.lambda, trace, no.iter = FALSE, eps = .Machine$double.eps)
   {
     variance <- family$variance
     linkinv <- family$linkinv
     mu.eta <- family$mu.eta
     dev.resids <- family$dev.resids
-    k <- length(active) - 1
-    kk <- length(tmpa) - 1
-    param <- c(b0[tmpa], M0, a0, 0, -b0[tmpa[-1]]-a0, 0, b0[tmpa[-1]]-a0)
-    xa <- x[ ,tmpa]
-    nobs <- nrow(xa)
-    p <- ncol(xa)
-    xstate <- rep(2, 4*kk+4)
-    xstate[param==0] <- 0
     if (!no.iter) {
+      kk <- length(tmpa) - 1
+      param <- c(b0[tmpa], M0, a0, 0, -b0[tmpa[-1]]-a0, 0, b0[tmpa[-1]]-a0)
+      xa <- x[ ,tmpa]
+      nobs <- nrow(xa)
+      p <- ncol(xa)
+      xstate <- rep(2, 4*kk+4)
+      xstate[param==0] <- 0
       dstr <- switch(family$family, binomial=1, poisson=2)
       lenz <- 10+(p+2)*nobs
       zsmall <- rep(0, lenz)
-      zsmall[1:2] <- c(lambda, dstr)
+      zsmall[1:4] <- c(nobs, lambda, lambda2, dstr)
       zsmall[10 + seq((p+2)*nobs)] <- c(as.vector(xa), y, weight)
       sol <- .Fortran("solution",
                       k = as.integer(kk),
-                      nobs = as.integer(nobs),
                       n = as.integer(2*kk+2),
                       nb = as.integer(4*kk+4),
                       ne = as.integer(5*kk+2),
@@ -79,6 +78,7 @@
       a0 <- sol$xn[(kk+3):(2*kk+2)]
       if (sol$inform != 0) cat("\nconvergence warning in corrector step\n")
     }
+    Lambda2 <- c(0, rep(lambda2,length(b0)-1))
     eta <- drop(x%*%b0)
     mu <- linkinv(eta)
     mu.eta.eta <- mu.eta(eta)
@@ -86,7 +86,7 @@
     z <- (y-mu)/mu.eta.eta
     xw <- x * w
     wz <- w * z
-    corr <- drop(t(xw) %*% wz)
+    corr <- drop(t(xw) %*% wz) - Lambda2*b0
     i <- which(abs(corr) >= lambda*(1-relax.lambda))
     newa <- i[!i%in%tmpa]
     newactive <- i[!i%in%active]
@@ -96,13 +96,12 @@
     active <- c(active, newactive)
     b0[-active] <- 0
     df <- length(active) - length(newactive)
-    aic <- sum(dev.resids(y, mu, weight)) + 2*df
-    bic <- aic + (log(nobs)-2)*df
+    dev <- sum(dev.resids(y, mu, weight))
     backshoot <- ifelse(any(abs(b0[newactive]) > bshoot.threshold), TRUE, FALSE)
-    list(b=b0, a=a0, M=M0, active=active, newactive=newactive, newa=newa, inactive=inactive, corr=corr, lambda=lambda, xw=xw, df=df, aic=aic, bic=bic, backshoot=backshoot)
+    list(b=b0, a=a0, M=M0, active=active, newactive=newactive, newa=newa, inactive=inactive, corr=corr, lambda=lambda, xw=xw, df=df, dev=dev, backshoot=backshoot)
   }
 
-"glmpath" <- function(x, y, family = binomial, weight = rep(1,length(y)), max.steps = NULL, max.norm = 100*ncol(x), min.lambda = 0, max.arclength = Inf, standardize = TRUE, add.newvars = 1, bshoot.threshold = 0.5, relax.lambda = 1e-9, eps = .Machine$double.eps, trace = FALSE)
+"glmpath" <- function(x, y, data, family = binomial, weight = rep(1,length(y)), lambda2 = 1e-5, max.steps = NULL, max.norm = 100*ncol(x), min.lambda = 0, max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1, relax.lambda = 1e-8, eps = .Machine$double.eps, trace = FALSE)
   {
     if (is.character(family)) 
         family <- get(family, mode = "function", envir = parent.frame())
@@ -115,9 +114,13 @@
         print(family)
         stop("'family' not recognized")
     }
+    if (!missing(data)) {
+      x <- data$x
+      y <- data$y
+    }
     n <- nrow(x)
-    m <- ncol(x)
-    if (m >= n) min.lambda <- max(min.lambda, 1e-6)
+    m <- ncol(x)    
+    if (m >= n) min.lambda <- ifelse(min.lambda == 0, 1e-6, min.lambda)
     if (is.null(max.steps)) max.steps <- 10*min(m, n)
     no.iter <- FALSE
     if (family$family=="gaussian" & family$link=="identity") no.iter <- TRUE
@@ -134,42 +137,49 @@
     sdx <- sqrt(drop(one %*% (x^2))/(n-1))
     ignore <- sdx < eps
     if (any(ignore)) sdx[ignore] <- 1
-    if (!standardize) sdx <- rep(1, m)
     x <- scale(x, FALSE, sdx)
     x <- cbind(1, x)
     if (is.null(dimnames(x)[[2]])) xnames <- paste("x",seq(m+1)-1,sep="")
     else xnames <- c("Intercept", dimnames(x)[[2]][-1])
     lam.vec <- step.len <- rep(0, max.steps)
-    bmat.pred <- bmat.corr <- cmat <- matrix(0, nrow=max.steps, ncol=(m+1))
-    new.df <- aic <- bic <- rep(0, max.steps)
+    bmat.pred <- bmat.corr <- cmat <- matrix(0, max.steps, m+1)
+    new.df <- df <- dev <- rep(0, max.steps)
     actions <- vector("list", length=max.steps)
-    backshoot <- fullactive <- FALSE
+    backshoot <- FALSE
     b <- rep(0, (m+1))
     init.mu <- mean(y)
     b0 <- family$linkfun(init.mu)
     if (trace) cat(paste("Initial intercept is",b0,"\n"))
-    init.corr <- t(x)%*%((y-init.mu)*weight)
-    lam.vec[1] <- lambda <- max(abs(init.corr[-1]))
-    c1 <- which.max(abs(init.corr[-1])) + 1
-    active <- c(1, c1)
-    k <- 1
-    if (trace) cat(paste("Lambda=",lambda,"lets the first factor in","\nStep",k,":","\t",xnames[c1],"added"))
     b[1] <- b0
+    k <- 1
     bmat.pred[k, ] <- bmat.corr[k, ] <- b
-    actions[[k]] <- active
     eta <- drop(x%*%b)
     mu <- family$linkinv(eta)
     mu.eta.eta <- family$mu.eta(eta)
     w <- (weight * mu.eta.eta^2/family$variance(mu))^0.5
-    corrector <- list(corr=init.corr, lambda=lambda, active=active, xw=x*w, b=sign(init.corr)) 
-    new.df[k] <- 1
+    z <- (y-init.mu)/mu.eta.eta
+    xw <- x * w
+    wz <- w * z
+    init.corr <- drop(t(xw) %*% wz)
+    cmat[k, ] <- init.corr
+    lam.vec[k] <- lambda <- max(abs(init.corr[-1]))
+    c1 <- which(abs(init.corr[-1]) == lambda) + 1
+    active <- c(1, c1)
+    actions[[k]] <- active[-1] - 1
+    names(actions[[k]]) <- xnames[abs(active[-1])]
+    if (trace) {
+      cat(paste("Lambda=",lambda,"lets the first factor in.\nStep",k,":"))
+      cat(paste("\t",xnames[c1],"added"))
+    }
+    corrector <- list(corr=init.corr, lambda=lambda, active=active, xw=xw, b=sign(init.corr)) 
+    new.df[k] <- df[k] <- 1
+    dev[k] <- sum(family$dev.resids(y, mu, weight))
     while(TRUE) {
       if (!backshoot) {
         k <- k + 1
         if (trace) cat(paste("\nStep",k,":"))
-        step <- step.length(corrector, min.lambda, max.arclength, add.newvars, backshoot)
-        predictor <- predictor1(b[active], step)
-        b[active] <- predictor
+        step <- step.length(corrector, lambda2, min.lambda, max.arclength, add.newvars, backshoot)
+        b[active] <- predictor1(b[active], step)
         bmat.pred[k, ] <- b
         step.len[k-1] <- h <- step$h
         lam.vec[k] <- lambda <- lambda + h
@@ -179,21 +189,21 @@
       }
       else {
         if (trace) cat(paste("\nStep",k,":"))
-        step <- step.length(corrector, min.lambda, Inf, add.newvars, backshoot, h)
+        step <- step.length(corrector, lambda2, min.lambda, Inf, add.newvars, backshoot, h)
         step.len[k-1] <- h + step$h
         h <- step$h
         lam.vec[k] <- lambda <- lambda + h
         a <- abs(b[tmpa[-1]])
         M <- sum(a)
       }
-      corrector <- corrector1(x, y, family, weight, k, active, tmpa, lambda, b, a, M, bshoot.threshold, relax.lambda, trace, no.iter)
+      corrector <- corrector1(x, y, family, weight, active, tmpa, lambda, lambda2, b, a, M, bshoot.threshold, relax.lambda, trace, no.iter)
       newa <- corrector$newa
       while(length(newa) > 0) {
         if (trace) cat(paste("\nRepeating step",k,":"))
         tmpa <- c(tmpa, newa)
         a <- abs(b[tmpa[-1]])
         M <- sum(a)
-        corrector <- corrector1(x, y, family, weight, k, active, tmpa, lambda, b, a, M, bshoot.threshold, relax.lambda, trace, no.iter)
+        corrector <- corrector1(x, y, family, weight, active, tmpa, lambda, lambda2, b, a, M, bshoot.threshold, relax.lambda, trace, no.iter)
         newa <- corrector$newa 
       }
       newaction <- c(corrector$newactive, -corrector$inactive)
@@ -205,8 +215,8 @@
         else {
           active <- corrector$active
           b <- corrector$b
-          actions[[k]] <- newaction
-          names(actions[[k]]) <- xnames[abs(actions[[k]])]
+          actions[[k]] <- sign(newaction)*(abs(newaction) - 1)
+          names(actions[[k]]) <- xnames[abs(newaction)]
           new.df[k] <- corrector$df
           if (trace) {
             na <- newaction[newaction > 0]
@@ -225,8 +235,8 @@
       if (!backshoot) {
         bmat.corr[k, ] <- b 
         cmat[k, ] <- corrector$corr
-        aic[k] <- corrector$aic
-        bic[k] <- corrector$bic
+        df[k] <- corrector$df
+        dev[k] <- corrector$dev
         if (lambda <= min.lambda | k == max.steps | length(corrector$active) > n | corrector$M >= max.norm) {
           if (trace & lambda <= min.lambda) cat("\nLambda=",min.lambda,"\n")
           else if (trace & k == max.steps) cat(paste("\nMaximum steps (",max.steps,") taken.\n"))                     
@@ -245,8 +255,16 @@
     bmat.pred[ ,-1] <- scale(bmat.pred[ ,-1], FALSE, sdx)
     bmat.corr[ ,-1] <- scale(bmat.corr[ ,-1], FALSE, sdx)
     bmat.corr[1,-1] <- 0
+    bmat.pred[ ,1] <- bmat.pred[ ,1] - bmat.pred[ ,-1,drop=FALSE] %*% meanx
+    bmat.corr[ ,1] <- bmat.corr[ ,1] - bmat.corr[ ,-1,drop=FALSE] %*% meanx
     dimnames(bmat.pred) <- dimnames(bmat.corr) <- dimnames(cmat) <- list(seq(k), xnames)
-    object <- list(lambda=lam.vec[1:k], step.length=abs(step.len[1:(k-1)]), new.df = new.df[1:k], corr = cmat, aic = aic[1:k], bic = bic[1:k], b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx=meanx, sdx=sdx, xnames=xnames, family=family, weight=weight)
+    df <- df[1:k]
+    dev <- dev[1:k]
+    if (family$family=="gaussian") Dev <- sum(weight)*(log(2*pi*dev/sum(weight)) + 1)
+    else Dev <- dev
+    aic <- Dev + 2*df
+    bic <- Dev + log(n)*df
+    object <- list(lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, deviance = Dev, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx=meanx, sdx=sdx, xnames=xnames, family=family, weight=weight)
     class(object) <- "glmpath"
     object
   }
@@ -287,14 +305,14 @@
     xname <- switch(xvar, norm = "|beta|", lambda = "lambda", step = "step")
     if (!is.null(mar)) par(mar=mar)
     if (type == "aic") {
-      aic <- object$aic[xi][-1]
-      plot(s[xi][-1], aic, xlab = xname, ylab = "AIC", type = "b", pch = 16, cex = 0.3, ...)
+      aic <- object$aic[xi]
+      plot(s[xi], aic, xlab = xname, ylab = "AIC", type = "b", pch = 16, cex = 0.3, ...)
       if (is.null(main)) title("AIC", line=2.5)
       else title(main, line=2.5)
     }
     else if (type == "bic") {
-      bic <- object$bic[xi][-1]
-      plot(s[xi][-1], bic, xlab = xname, ylab = "BIC", type = "b", pch = 16, cex = 0.3, ...)
+      bic <- object$bic[xi]
+      plot(s[xi], bic, xlab = xname, ylab = "BIC", type = "b", pch = 16, cex = 0.3, ...)
       if (is.null(main)) title("BIC", line=2.5)
       else title(main, line=2.5)
     }
@@ -314,12 +332,16 @@
     }
   }
 
-"predict.glmpath" <- function(object, newx, s, type = c("link", "response", "coefficients"), mode = c("step", "norm.fraction", "norm", "lambda.fraction", "lambda"), eps = .Machine$double.eps, ...)
+"predict.glmpath" <- function(object, newx, newy, s, type = c("link", "response", "loglik", "coefficients"), mode = c("step", "norm.fraction", "norm", "lambda.fraction", "lambda"), weight = NULL, eps = .Machine$double.eps, ...)
   {
     mode <- match.arg(mode)
     type <- match.arg(type)
     if (missing(newx) & type != "coefficients") {
-        warning("Type=fit with no newx argument; type switched to coefficients")
+        warning("no newx argument; type switched to coefficients")
+        type <- "coefficients"
+    }
+    if (missing(newy) & type == "loglik") {
+        warning("no newy argument; type switched to coefficients")
         type <- "coefficients"
     }
     b <- object$b.corrector
@@ -331,7 +353,7 @@
         mode <- "step"
     }
     sb <- switch(mode, step = {
-        if (any(s < 0) | any(s > k)) 
+        if (any(s < 1) | any(s > k)) 
             stop("Argument s out of range")
         steps
     }, norm.fraction = {
@@ -371,12 +393,19 @@
     newb[left == right, ] <- b[left[left == right], ]    
     if (type!="coefficients") {
       if (is.vector(newx)) newx <- matrix(newx, nrow=1)
-      fit <- cbind(1,scale(newx, object$meanx, FALSE)) %*% t(newb)      
-      if (type=="response") fit <- object$family$linkinv(fit)
+      fit <- cbind(1, newx) %*% t(newb)
+      if (type!="link") {
+        fit <- object$family$linkinv(fit)
+        if (type=="loglik") {
+          if (is.null(weight)) weight <- rep(1, length(newy))
+          loglik <- matrix(0, length(newy), length(s))
+          for (k in 1:length(s)) loglik[ ,k] <- -object$family$dev.resids(newy, fit[ ,k], weight)/2
+          fit <- loglik
+        }
+      }
       dimnames(fit) <- list(seq(nrow(newx)), s)
     }
     else {
-      newb[ ,1] <- newb[ ,1] - newb[ ,-1,drop=FALSE] %*% object$mean
       fit <- newb
       dimnames(fit) <- list(s, object$xnames)
     }
@@ -386,8 +415,9 @@
     fit
 }
 
-"cv.glmpath" <- function (x, y, family = binomial, weight = rep(1, length(y)), nfold = 10, fraction = seq(from=0, to=1, length=100), mode = c("norm","lambda"), plot.it = TRUE, se = TRUE, ...)
+"cv.glmpath" <- function (x, y, family = binomial, weight = rep(1, length(y)), nfold = 10, fraction = seq(from=0, to=1, length=100), type = c("loglik","response"), mode = c("norm","lambda"), plot.it = TRUE, se = TRUE, ...)
   {
+    type <- match.arg(type)
     mode <- match.arg(mode)
     if (is.character(family)) 
         family <- get(family, mode = "function", envir = parent.frame())
@@ -410,22 +440,26 @@
         omit <- all.folds[[i]]
         fit <- glmpath(x[-omit, ], y[-omit], family=family, weight=weight[-omit], ...)
         pred <- switch(mode, norm = {
-          predict(fit, x[omit, , drop = FALSE], s = fraction,
-                  type="response", mode = "norm.fraction")
+          predict(fit, x[omit, , drop = FALSE], y[omit], s = fraction,
+                  type=type, mode = "norm.fraction")
         }, lambda = {
-          predict(fit, x[omit, , drop = FALSE], s = fraction,
-                  type="response", mode = "lambda.fraction")
+          predict(fit, x[omit, , drop = FALSE], y[omit], s = fraction,
+                  type=type, mode = "lambda.fraction")
         })
         if (length(omit) == 1) pred <- matrix(pred, nrow = 1)
-        if (family$family=="binomial") ifelse(pred > 0.5, 1, 0)
-        residmat[, i] <- apply((y[omit] - pred)^2, 2, mean)
+        if (type=="loglik") residmat[ ,i] <- apply(pred, 2, mean)
+        else {
+          if (family$family=="binomial") ifelse(pred > 0.5, 1, 0)
+          residmat[, i] <- apply((y[omit] - pred)^2, 2, mean)
+        }
         cat("CV Fold", i, "\n")
     }
     cv.error <- apply(residmat, 1, mean)
     cv.se <- sqrt(apply(residmat, 1, var)/nfold)
     object <- list(fraction = fraction, cv.error = cv.error, cv.se = cv.se, folds=all.folds)
     if (plot.it) {
-      plot(fraction, cv.error, type="l", ylim=range(c(cv.error-cv.se, cv.error+cv.se)), xlab=switch(mode, norm="Norm fraction", lambda="log(lambda) fraction"), ylab="Cross-validation errors", main="Cross-validation errors")
+      lab <- switch(type, loglik="Cross-validated Log-likelihood", response="Cross-validation errors")
+      plot(fraction, cv.error, type="l", ylim=range(c(cv.error-cv.se, cv.error+cv.se)), xlab=switch(mode, norm="Norm fraction", lambda="log(lambda) fraction"), ylab=lab, main=lab)
       if (se) segments(fraction, cv.error-cv.se, fraction, cv.error+cv.se)
     }
     invisible(object)
@@ -438,5 +472,75 @@
     k <- length(actions)
     for (i in 1:k) {
       if (length(actions[[i]]) > 0) cat("Step",i,":",xn[abs(actions[[i]])],"\n")
+    }
+  }
+
+"bootstrap.path" <- function(x, y, data, B, index=NULL, path=c("glmpath","coxpath"), method=c("aic","bic"), trace=FALSE, ...)
+  {
+    path <- match.arg(path)
+    method <- match.arg(method)
+    if (!missing(data)) x <- data$x
+    n <- nrow(x)
+    p <- ncol(x)
+    if (!is.null(index)) B <- nrow(index)
+    else index <- matrix(sample(c(1:n), n*B, replace=T), nrow=B)
+    beta <- matrix(0, B, p)
+    if (path=="glmpath") {
+      if (!missing(data)) y <- data$y
+      fit <- glmpath(x, y, ...)
+      s <- switch(method, aic=which.min(fit$aic), bic=which.min(fit$bic))
+      beta0 <- fit$b.corrector[s,-1]*fit$sdx
+      for (b in 1:B) {
+        bx <- x[index[b, ], ]
+        by <- y[index[b, ]]
+        fit <- glmpath(bx, by, ...)
+        s <- switch(method, aic=which.min(fit$aic), bic=which.min(fit$bic))
+        beta[b, ] <- fit$b.corrector[s,-1]*fit$sdx
+        if (trace) cat(b)
+      }
+    }
+    else {
+      time <- data$time
+      status <- data$status
+      fit <- coxpath(data, trace=FALSE, ...)
+      s <- switch(method, aic=which.min(fit$aic), bic=which.min(fit$bic))
+      beta0 <- fit$b.corrector[s, ]*fit$sdx
+      for (b in 1:B) {
+        bx <- x[index[b, ], ]
+        btime <- time[index[b, ]]
+        bstatus <- status[index[b, ]]
+        fit <- coxpath(list(x=bx, time=btime, status=bstatus), ...)
+        s <- switch(method, aic=which.min(fit$aic), bic=which.min(fit$bic))
+        beta[b, ] <- fit$b.corrector[s, ]*fit$sdx
+        if (trace) cat(b)
+      }
+    }
+    dimnames(beta) <- list(seq(B), dimnames(x)[[2]])
+    attr(beta, "coefficients") <- beta0
+    class(beta) <- "bootpath"
+    beta
+  }
+
+"plot.bootpath" <- function(x, type=c("histogram","pairplot"), mfrow = NULL, ...)
+  {
+    type <- match.arg(type)
+    beta0 <- attr(x, "coefficients")
+    if (type=="histogram") {
+      p <- ncol(x)
+      if (!is.null(mfrow)) par(mfrow=mfrow)
+      else par(mfrow=c(2, ceiling(p/2)))
+      for (j in 1:p) {
+        hist(x[ ,j], main=dimnames(x)[[2]][j], xlab="Bootstrap coefficient", ylab="Frequency", freq=T, ...)
+        if (sum(x[ ,j]==0) > 0) segments(0, 0, 0, sum(x[ ,j]==0), lwd=3)
+        abline(v=beta0[j], col=2)
+      }
+    }
+    else {
+      bpanel <- function(x, y) {
+        abline(v=0, h=0, lwd=2, col=3)
+        points(x, y)
+        points(x[1], y[1], pch=16, col=2) 
+      }
+      pairs(rbind(beta0, x), panel=bpanel, ...)
     }
   }
