@@ -12,12 +12,12 @@
 \alias{step.length}
 \alias{step.length.cox}
 \usage{
-corrector1(x, y, family, weight, active, tmpa, lambda, lambda2,
-          b0, a0, M0, bshoot.threshold, relax.lambda, trace,
-          no.iter = FALSE, eps = .Machine$double.eps)
+corrector1(x, y, family, weight, active, tmpa, force.active, lambda,
+           lambda2, b0, a0, bshoot.threshold, relax.lambda, trace,
+           no.iter = FALSE, eps = .Machine$double.eps)
 corrector.cox(x, y, d, rslist, wlist, rept, method, active, tmpa,
-              lambda, b0, a0, M0, bshoot.threshold, relax.lambda,
-              trace, eps = .Machine$double.eps)
+              force.active, lambda, lambda2, b0, a0, bshoot.threshold,
+              relax.lambda, trace, eps = .Machine$double.eps)
 logplik(x, time, status, b, method = c("breslow", "efron"),
         return.all=FALSE)
 predictor1(b, step)
@@ -26,7 +26,7 @@ print.coxpath(x, ...)
 print.glmpath(x, ...)
 step.length(corrector, lambda2, min.lambda, max.arclength, add.newvars,
             backshoot, h0=NULL, eps=.Machine$double.eps)
-step.length.cox(corrector, x, d, rslist, wlist, min.lambda,
+step.length.cox(corrector, lambda2, x, d, rslist, wlist, min.lambda,
                 max.arclength, add.newvars, backshoot, approx.Gram,
                 h0=NULL, eps=.Machine$double.eps)
 }

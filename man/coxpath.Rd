@@ -10,84 +10,99 @@
   penalty.
 }
 \usage{
-  coxpath(data, method = c("breslow", "efron"),
-          max.steps = NULL, max.norm = 100*ncol(data$x),
-          min.lambda = 0, max.arclength = Inf,
-          add.newvars = 1, bshoot.threshold = 0.1,
-          relax.lambda = 1e-7, approx.Gram = FALSE,
-          eps = .Machine$double.eps, trace = FALSE)
+  coxpath(data, nopenalty.subset = NULL, method = c("breslow", "efron"),
+          lambda2 = 1e-5, max.steps = 10*min(nrow(data$x), ncol(data$x)),
+          max.norm = 100*ncol(data$x),
+          min.lambda = (if (ncol(x) >= nrow(x)) 1e-3 else 0),
+          max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1,
+          relax.lambda = 1e-7, approx.Gram = FALSE, standardize = TRUE,
+          eps = .Machine$double.eps, trace = FALSE) 
 }
 \arguments{
-\item{data}{
-  a list consisting of \code{x:} a matrix of features, \code{time:}
-  the survival time, and \code{status:} censor status with 1 if died and
-  0 if censored. 
-}
-\item{method}{
-  approximation method for tied survival times. Approximations derived
-  by Breslow (1974) and Efron (1977) are available. Default is
-  \code{breslow.}
-}
-\item{max.steps}{
-  an optional bound for the number of steps to be taken. Default is
-  \code{10 * min{nrow(x), ncol(x)}.}
-}
-\item{max.norm}{
-  an optional bound for the L1 norm of the coefficients. Default is
-  \code{100 * ncol(x).}
-}
-\item{min.lambda}{
-  an optional (lower) bound for the size of \eqn{\lambda}. When
-  \code{ncol(x)} is relatively large, the coefficient estimates are
-  prone to numerical precision errors at extremely small
-  \eqn{\lambda}. In such cases, early stopping is recommended (using
-  \code{max.steps,} \code{max.norm,} or \code{min.lambda}). Default is
-  \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-3} otherwise.
-}
-\item{max.arclength}{
-  an optional bound for arc length (L1 norm) of a step. If
-  \code{max.arclength} is extremely small, an exact nonlinear path is
-  produced. Default is \code{Inf.}
-}
-\item{add.newvars}{
-  \code{add.newvars} candidate variables (that are currently not in
-  the active set) are used in the corrector step as potential active
-  variables. Default is \code{1.}
-}
-\item{bshoot.threshold}{
-  If the absolute value of a coefficient is larger than
-  \code{bshoot.threshold} at the first corrector step it becomes nonzero
-  (therefore when \eqn{\lambda} is considered to have been decreased too
-  far), \eqn{\lambda} is increased again. i.e. A backward distance in
-  \eqn{\lambda} that makes the coefficient zero is computed. Default is
-  \code{0.1.}
-}
-\item{relax.lambda}{
-  A variable joins the active set if \eqn{|l'(\beta)| >
-    \lambda}(1-\code{relax.lambda}). Default is \code{1e-7.} If no
-  variable joins the active set even after many (>20) steps, the user
-  should increase \code{relax.lambda} to \code{1e-6} or \code{1e-5,} but
-  not more than that. This adjustment is sometimes needed because of the
-  numerical precision/error propagation problems. In general, the paths
-  are less accurate with relaxed lambda.     
-}
-\item{approx.Gram}{
-  If \code{TRUE,} an approximated Gram matrix is used in predictor
-  steps; each step takes less number of computations, but the total
-  number of steps usually increases. This might be useful when the
-  number of features is large.
-}
-\item{eps}{
-  an effective zero
-}
-\item{trace}{
-  If \code{TRUE,} the algorithm prints out its progress.
-}
+  \item{data}{
+    a list consisting of \code{x:} a matrix of features, \code{time:}
+    the survival time, and \code{status:} censor status with 1 if died
+    and 0 if censored. 
+  }
+  \item{nopenalty.subset}{
+    a set of indices for the predictors that are not subject to the L1
+    penalty
+  }
+  \item{method}{
+    approximation method for tied survival times. Approximations derived
+    by Breslow (1974) and Efron (1977) are available. Default is
+    \code{breslow.}
+  }
+  \item{lambda2}{
+    regularization parameter for the L2 norm of the
+    coefficients. Default is \code{1e-5.}
+  }
+  \item{max.steps}{
+    an optional bound for the number of steps to be taken. Default is
+    \code{10 * min{nrow(x), ncol(x)}.}
+  }
+  \item{max.norm}{
+    an optional bound for the L1 norm of the coefficients. Default is
+    \code{100 * ncol(x).}
+  }
+  \item{min.lambda}{
+    an optional (lower) bound for the size of \eqn{\lambda}. When
+    \code{ncol(x)} is relatively large, the coefficient estimates are
+    prone to numerical precision errors at extremely small
+    \eqn{\lambda}. In such cases, early stopping is recommended (using
+    \code{max.steps,} \code{max.norm,} or \code{min.lambda}). Default is
+    \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-3} otherwise.
+  }
+  \item{max.arclength}{
+    an optional bound for arc length (L1 norm) of a step. If
+    \code{max.arclength} is extremely small, an exact nonlinear path is
+    produced. Default is \code{Inf.}
+  }
+  \item{add.newvars}{
+    \code{add.newvars} candidate variables (that are currently not in
+    the active set) are used in the corrector step as potential active
+    variables. Default is \code{1.}
+  }
+  \item{bshoot.threshold}{
+    If the absolute value of a coefficient is larger than
+    \code{bshoot.threshold} at the first corrector step it becomes
+    nonzero (therefore when \eqn{\lambda} is considered to have been
+    decreased too far), \eqn{\lambda} is increased again. i.e. A
+    backward distance in \eqn{\lambda} that makes the coefficient zero
+    is computed. Default is \code{0.1.}
+  }
+  \item{relax.lambda}{
+    A variable joins the active set if \eqn{|l'(\beta)| >
+      \lambda}(1-\code{relax.lambda}). Default is \code{1e-7.} If no
+    variable joins the active set even after many (>20) steps, the user
+    should increase \code{relax.lambda} to \code{1e-6} or \code{1e-5,}
+    but not more than that. This adjustment is sometimes needed because
+    of the numerical precision/error propagation problems. In general,
+    the paths are less accurate with relaxed lambda.     
+  }
+  \item{approx.Gram}{
+    If \code{TRUE,} an approximated Gram matrix is used in predictor
+    steps; each step takes less number of computations, but the total
+    number of steps usually increases. This might be useful when the
+    number of features is large.    
+  }
+  \item{standardize}{
+    If \code{TRUE,} predictors are standardized to have a unit variance.
+  }
+  \item{eps}{
+    an effective zero
+  }
+  \item{trace}{
+    If \code{TRUE,} the algorithm prints out its progress.
+  }
 }
 \value{
   A \code{coxpath} object is returned.
   \item{lambda}{
     vector of \eqn{\lambda} values for which exact coefficients are computed
+  }
+  \item{lambda2}{
+    \eqn{\lambda_2} used
   }
   \item{step.length}{
     vector of step lengths in \eqn{\lambda}
@@ -131,6 +146,12 @@
   }
   \item{method}{
     method used
+  }
+  \item{nopenalty.subset}{
+    nopenalty.subset used
+  }
+  \item{standardize}{
+    \code{TRUE} if the predictors were standardized before fitting
   }
 }
 \details{

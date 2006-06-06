@@ -9,12 +9,12 @@
       integer            nwcore
       parameter          (nwcore = 10000000)
 *     ------------------------------------------------------------------
-      integer            m, nname, nncon, nnobj, nnjac, iobj,  
+      integer            m, p, fk, nname, nncon, nnobj, nnjac, iobj,  
      &                   ka(n+1), name1, name2,
      &                   ns, mincor, ninf, 
-     &                   iprint, isumm, ispecs, i, ii, nobs
+     &                   iprint, isumm, ispecs, i, ii, j, nobs
       integer*4          ha(ne)
-      double precision   objadd, a(ne), bl(nb), bu(nb), pi(2*k+2),
+      double precision   objadd, a(ne), bl(nb), bu(nb), pi(2*k+1),
      &                   rc(nb), sinf, obj, z(nwcore)
       character*8        names(5)
 *     zero, one, infinity-----------------------------------------------
@@ -30,15 +30,15 @@
       
       call mistart( iprint, isumm, ispecs )  ! Initialize MINOS and open
 *     ------------------------------------------------------------------
-*        1  +  1  +  1  +  1  +  7  + (p+1)*nobs+nobs+nobs+nobs+nobs 
-*     (nobs)(lam) (mthd) (lp)   (b)  (x, y data) (d) (rep)(eta)(wsum) 
+*       1 + 1  + 1 + 1  + 1 + 1 + 4 + (p+1)*nobs+nobs+nobs+nobs+nobs 
+*     nobs lam lam2 mthd  k  lp   b   x, y data   d   rep  eta  wsum 
 *     ------------------------------------------------------------------
       call miopti( 'Workspace (user) ', lenz, 0, 0, inform )
       call miopti( 'LOG FREQUENCY ', 0, 0, 0, inform )
       call miopti( 'PRINT LEVEL ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FILE ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FREQUENCY ', 0, 0, 0, inform )
-      call miopti( 'SUPERBASICS LIMIT ', n, 0, 0, inform )
+      call miopti( 'SUPERBASICS LIMIT ', n+30, 0, 0, inform )
       call miopti( 'PROBLEM NUMBER ', 2, 0, 0, inform )
 *     ------------------------------------------------------------------
 *     Now set parameters for moniss
@@ -46,59 +46,71 @@
       do i = 1, lenz
          z(i) = zsmall(i)
       end do
+      p = n - k
+      fk = p - k
       m = 2*k + 1
       nname = 1
       nncon = 0
-      nnobj = k + 1
+      nnobj = n
       nnjac = 0
       iobj = 0
       objadd = 0.0d+0
-      do i = 1, k
-         a((i-1)*2+1) = -one
-         a((i-1)*2+2) = one
-         ha((i-1)*2+1) = i 
-         ha((i-1)*2+2) = i + k + 1
-      end do
-      a(2*k+1) = -one
-      ha(2*k+1) = k + 1
-      ii = 2*k + 1
-      do i = 1, k
-         a(ii+(i-1)*3+1) = -one
-         a(ii+(i-1)*3+2) = one
-         a(ii+(i-1)*3+3) = -one
-         ha(ii+(i-1)*3+1) = i 
-         ha(ii+(i-1)*3+2) = k + 1
-         ha(ii+(i-1)*3+3) = i + k + 1
-      end do
-      do i = 1, k
-         ka(i) = (i-1)*2 + 1
-      end do
-      ka(k+1) = 2*k + 1
-      ii = 2*k + 2
-      do i = 1, k
-         ka(k+1+i) = ii + (i-1)*3 
-      end do
+      if (fk .gt. 0) then
+         do i = 1, fk
+            ha(i) = 1
+            a(i) = zero
+         end do
+      end if
+      if (k .gt. 0) then
+         do i = 1, k
+            ii = fk+(i-1)*3+1
+            ha(ii) = 1
+            ha(ii+1) = i*2 
+            ha(ii+2) = i*2+1
+            a(ii) = zero
+            a(ii+1) = -one
+            a(ii+2) = one
+         end do
+         do i = 1, k
+            ii = fk+(k+i-1)*3+1
+            ha(ii) = 1
+            ha(ii+1) = i*2
+            ha(ii+2) = i*2+1
+            a(ii) = zero
+            a(ii+1) = -one
+            a(ii+2) = -one
+         end do
+      end if
+      if (fk .gt. 0) then
+         do i = 1, fk
+            ka(i) = i
+         end do
+      end if
+      if (k .gt. 0) then
+         j = fk
+         ii = fk-2
+         do i = 1, 2*k
+            j = j+1
+            ii = ii+3
+            ka(j) = ii
+         end do
+      end if
       ka(n+1) = ne+1
-      do i = 1, k
+      do i = 1, p
          bl(i) = bminus
          bu(i) = bplus
       end do
-      do i = (k+1), n
+      do i = (p+1), nb
          bl(i) = zero
          bu(i) = bplus
       end do     
-      do i = (n+1), nb
-         bl(i) = zero
-         bu(i) = bplus
-      end do
-      pi(1) = zero
       ns = 0
       do i = 1, n
          if (hs(i) .eq. 2) then
             ns = ns + 1
          end if
       end do      
-
+      
       call minoss( 'Warm', m, n, nb, ne, nname,
      $             nncon, nnobj, nnjac,
      $             iobj, objadd, names,
@@ -108,59 +120,35 @@
      $             z, nwcore )
 
       nobs = int(z(1))
-      ii = 10 + (k+3)*nobs
+      ii = 10 + (p+3)*nobs
       do i = 1, 2*nobs
          zsmall(ii+i) = z(ii+i)
       end do
-      zsmall(4) = z(4)
+      zsmall(6) = z(6)
 
       end ! subroutine coxsolution
 
 *+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-      subroutine funobjcox( mode, n, x, f, g, nstate, nprob, z, nwcore )
-
-      implicit           double precision (a-h,o-z)
-      integer            mode, n, nstate, nprob, nwcore
-      double precision   x(n), g(n), f, z(nwcore)
-
-      integer            nobs, p, method
-      double precision   lam
-*     ------------------------------------------------------------------
-*        1  +  1  +  1  +  1  +  7  + (p+1)*nobs+nobs+nobs+nobs+nobs 
-*     (nobs)(lam) (mthd) (lp)   (b)  (x, y data) (d) (rep)(eta)(wsum) 
-*     ------------------------------------------------------------------
-
-      mode = mode
-      nstate = nstate
-      nprob = nprob
-      nobs = int(z(1))
-      lam = z(2)
-      method = int(z(3))
-      p = n - 1
-
-      call subfunobj( n, x, f, g, z, nwcore, nobs, lam, method, p )
-
-      return
-
-      end
-
-*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
       subroutine subfunobjcox( n, x, f, g, z, nwcore, 
-     $                         nobs, lam, method, p )  
+     $                         nobs, lam, lam2, method, kk, p )  
 
-      integer            n, nwcore, nobs, p, method
-      double precision   x(n), g(n), f, z(nwcore), lam 
+      integer            n, nwcore, nobs, kk, p, method
+      double precision   x(n), g(n), f, z(nwcore), lam, lam2
 
       integer            i, j, k, ii, ii0, ii1, ii2, ii3, ii4
-      double precision   y(nobs), d(nobs), rept(nobs),
+      double precision   d(nobs), rept(nobs),
      &                   eta(nobs), mu(nobs), 
-     &                   wx(p), dwx(p), wsum, dwsum, xk(p), ddot
+     &                   wx(p), dwx(p), wsum, dwsum, xk(p), 
+     &                   ddot, norm1, norm2
 *     -------------------------------------------------------------
-      double precision   zero,          one
-      parameter         (zero = 0.0d+0, one = 1.0d+0)
+      double precision   zero,        half,        one
+      parameter         (zero=0.0d+0, half=5.0d-1, one=1.0d+0)
 *     -------------------------------------------------------------
+*     ------------------------------------------------------------------
+*       1 + 1  + 1 + 1  + 1 + 1 + 4 + (p+1)*nobs+nobs+nobs+nobs+nobs 
+*     nobs lam lam2 mthd  k  lp   b   x, y data   d   rep  eta  wsum 
+*     ------------------------------------------------------------------
 
       ii = 10 
       ii0 = ii + p*nobs
@@ -169,7 +157,6 @@
       ii3 = ii2 + nobs
       ii4 = ii3 + nobs
       do 200 i = 1, nobs
-         y(i) = z(ii0 + i) ! delete if not used
          d(i) = z(ii1 + i)
          rept(i) = z(ii2 + i)
          do 100 j = 1, p
@@ -206,7 +193,7 @@
                else if (ii1 .gt. 0) then
                   ii1 = ii1 - 1
                end if
-            else if (method. eq. 2) then
+            else if (method .eq. 2) then
                if (rept(i) .ne. zero .and. ii1 .eq. 0) then 
                   ii0 = int(rept(i))
                   ii1 = ii0 - 1
@@ -252,9 +239,26 @@
             f = f - mu(i) + log(wsum)
          end if
  600  continue
-      z(4) = -f
-      f = f + lam*x(n)
-      g(n) = lam
+      z(6) = -f
+      norm1 = zero
+      if (kk .gt. 0) then
+         do 700 j = 1, kk
+            norm1 = norm1 + x(p+j)
+ 700     continue
+      end if
+      norm2 = zero
+      do 730 j = 1, p
+         norm2 = norm2 + x(j)**2
+ 730  continue
+      f = f + lam*norm1 + half*lam2*norm2
+      do 750 j = 1, p
+         g(j) = g(j) + lam2*x(j)
+ 750  continue
+      if (kk .gt. 0) then
+         do 780 j = 1, kk
+            g(p+j) = lam
+ 780     continue
+      end if
 
       return
 

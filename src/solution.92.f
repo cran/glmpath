@@ -9,12 +9,12 @@
       integer            nwcore
       parameter          (nwcore = 10000000)
 *     ------------------------------------------------------------------
-      integer            m, p, nname, nncon, nnobj, nnjac, iobj,  
+      integer            m, p, fk, nname, nncon, nnobj, nnjac, iobj,  
      &                   ka(n+1), name1, name2,
      &                   ns, mincor, ninf, 
-     &                   iprint, isumm, ispecs, i, ii
+     &                   iprint, isumm, ispecs, i, ii, j
       integer*4          ha(ne)
-      double precision   objadd, a(ne), bl(nb), bu(nb), pi(2*k+2),
+      double precision   objadd, a(ne), bl(nb), bu(nb), pi(2*k+1),
      &                   rc(nb), sinf, obj, z(nwcore)
       character*8        names(5)
 *     zero, one, infinity-----------------------------------------------
@@ -30,15 +30,15 @@
       
       call mistart( iprint, isumm, ispecs )  ! Initialize MINOS and open
 *     ------------------------------------------------------------------
-*     User workspace: 1  +  1  +  1  +  1  +  1  + 7 + (p+1)*nobs + nobs
-*                  (nobs)(lam) (lam2)(dist)(link) (b)  (x, y data)  (w)  
+*     User workspace: 1 + 1 + 1  + 1  + 1 + 5 + (p+1)*nobs + nobs
+*                   nobs lam lam2 dist  k   b   x, y data    w 
 *     ------------------------------------------------------------------
       call miopti( 'Workspace (user) ', lenz, 0, 0, inform )
       call miopti( 'LOG FREQUENCY ', 0, 0, 0, inform )
       call miopti( 'PRINT LEVEL ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FILE ', 0, 0, 0, inform )
       call miopti( 'SUMMARY FREQUENCY ', 0, 0, 0, inform )
-      call miopti( 'SUPERBASICS LIMIT ', n, 0, 0, inform )
+      call miopti( 'SUPERBASICS LIMIT ', n+30, 0, 0, inform )
       call miopti( 'PROBLEM NUMBER ', 1, 0, 0, inform )
 *     ------------------------------------------------------------------
 *     Now set parameters for moniss
@@ -46,58 +46,56 @@
       do i = 1, lenz
          z(i) = zsmall(i)
       end do
-      p = k + 1
-      m = 2*k + 2
+      p = n - k
+      fk = p - k
+      m = 2*k + 1
       nname = 1
       nncon = 0
-      nnobj = p + 1
+      nnobj = n
       nnjac = 0
       iobj = 0
       objadd = 0.0d+0
-      a(1) = zero
-      ha(1) = 1
-      do i = 1, k
-         a((i-1)*2+2) = -one
-         a((i-1)*2+3) = one
-         ha((i-1)*2+2) = i + 1
-         ha((i-1)*2+3) = i + k + 2
+      do i = 1, fk
+         ha(i) = 1
+         a(i) = zero
       end do
-      a(2*k+2) = -one
-      ha(2*k+2) = k + 2
-      ii = 2*k + 2
-      do i = 1, k
-         a(ii+(i-1)*3+1) = -one
-         a(ii+(i-1)*3+2) = one
-         a(ii+(i-1)*3+3) = -one
-         ha(ii+(i-1)*3+1) = i + 1
-         ha(ii+(i-1)*3+2) = k + 2
-         ha(ii+(i-1)*3+3) = i + k + 2
+      if (k .gt. 0) then
+         do i = 1, k
+            ii = fk+(i-1)*2+1
+            ha(ii) = i*2
+            ha(ii+1) = i*2+1
+            a(ii) = -one
+            a(ii+1) = one
+         end do
+         do i = 1, k
+            ii = fk+(k+i-1)*2+1
+            ha(ii) = i*2
+            ha(ii+1) = i*2+1
+            a(ii) = -one
+            a(ii+1) = -one
+         end do
+      end if
+      do i = 1, fk
+         ka(i) = i
       end do
-      ka(1) = 1
-      do i = 2, (k+1)
-         ka(i) = (i-1)*2
-      end do
-      ka(k+2) = 2*k + 2
-      ii = 2*k + 3
-      do i = 1, k
-         ka(k+2+i) = ii + (i-1)*3 
-      end do
+      if (k .gt. 0) then
+         j = fk
+         ii = fk-1
+         do i = 1, 2*k
+            j = j+1
+            ii = ii+2
+            ka(j) = ii
+         end do
+      end if
       ka(n+1) = ne+1
       do i = 1, p
          bl(i) = bminus
          bu(i) = bplus
       end do
-      do i = (p+1), n
-         bl(i) = zero
-         bu(i) = bplus
-      end do     
-      bl(n+1) = zero
-      bu(n+1) = zero
-      do i = (n+2), nb
+      do i = (p+1), nb
          bl(i) = zero
          bu(i) = bplus
       end do
-      pi(1) = zero
       ns = 0
       do i = 1, n
          if (hs(i) .eq. 2) then
@@ -123,11 +121,11 @@
       integer            mode, n, nstate, nprob, nwcore
       double precision   x(n), f, g(n), z(nwcore)
 
-      integer            nobs, p, method
+      integer            nobs, k, p, method
       double precision   lam, lam2, dstr
 *     ------------------------------------------------------------------
-*     User workspace: 1  +  1  +  1  +  1  +  1  + 7 + (p+1)*nobs + nobs
-*                  (nobs)(lam) (lam2)(dist)(link) (b)  (x, y data)  (w)  
+*     User workspace: 1 + 1 + 1  + 1  + 1 + 5 + (p+1)*nobs + nobs
+*                   nobs lam lam2 dist  k   b   x, y data    w 
 *     ------------------------------------------------------------------
 
       mode = mode
@@ -135,20 +133,20 @@
       nprob = nprob
       nobs = int(z(1))
       lam = z(2)
-      p = n - 1
+      lam2 = z(3)
+      k = int(z(5))
+      p = n - k
 
       if (nprob .eq. 1) then
-         lam2 = z(3)
          dstr = z(4)
          method = 0
          call subfunobj( n, x, f, g, z, nwcore, nobs, 
-     $                   lam, lam2, dstr, p )
+     $                   lam, lam2, dstr, k, p )
       else
-         method = int(z(3))
-         lam2 = 0.0d+0
          dstr = 0.0d+0
+         method = int(z(4))
          call subfunobjcox( n, x, f, g, z, nwcore, nobs, 
-     $                      lam, method, p )
+     $                      lam, lam2, method, k, p )
       endif 
 
       return
@@ -158,19 +156,19 @@
 *+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       subroutine subfunobj( n, x, f, g, z, nwcore,
-     $                      nobs, lam, lam2, dstr, p )  
+     $                      nobs, lam, lam2, dstr, k, p )  
 
-      integer            n, nwcore, nobs, p
+      integer            n, nwcore, nobs, k, p
       double precision   x(n), g(n), f, z(nwcore),
      &                   lam, lam2, dstr
 
       integer            i, j, ii
       double precision   eta(nobs), mu(nobs), resid(nobs),
      &                   xi(nobs), y(nobs), wt(nobs),
-     &                   loglik, ddot, norm2
+     &                   loglik, ddot, norm1, norm2
 *     -------------------------------------------------------------
-      double precision   zero,          one,          two    
-      parameter         (zero = 0.0d+0, one = 1.0d+0, two = 2.0d+0)
+      double precision zero,       half,       one,       two    
+      parameter       (zero=0.0d+0,half=5.0d-1,one=1.0d+0,two=2.0d+0)
 *     -------------------------------------------------------------
 
       ii = 10 
@@ -185,7 +183,10 @@
       loglik = zero
       do 300 i = 1, nobs
          wt(i) = z(ii + i)
-         if (dstr .eq. one) then 
+         if (dstr .eq. zero) then
+            mu(i) = eta(i)
+            loglik = loglik - wt(i)*((y(i)-mu(i))**2)/two
+         else if (dstr .eq. one) then 
             mu(i) = one/(one+exp(-eta(i)))
             loglik = loglik + wt(i)*(y(i)*eta(i)-log(one+exp(eta(i))))
          else if (dstr .eq. two) then
@@ -193,11 +194,20 @@
             loglik = loglik + wt(i)*(y(i)*eta(i) - mu(i))
          end if
          resid(i) = wt(i)*(y(i) - mu(i))
- 300  continue      
-      do 350 i = 2, p
-         norm2 = norm2 + x(i)**2
- 350  continue
-      f = -loglik + lam*x(p+1) + 0.5*lam2*norm2
+ 300  continue
+      norm2 = zero
+      if (p .gt. 1) then
+         do 330 j = 2, p
+            norm2 = norm2 + x(j)**2
+ 330     continue
+      end if
+      norm1 = zero
+      if (k .gt. 0) then 
+         do 360 j = 1, k
+            norm1 = norm1 + x(p+j)
+ 360     continue
+      end if
+      f = -loglik + lam*norm1 + half*lam2*norm2
       do 500 j = 1, p
          ii = 10 + (j-1)*nobs
          do 400 i = 1, nobs
@@ -205,10 +215,16 @@
  400     continue
          g(j) = ddot (nobs, xi, 1, resid, 1)
  500  continue
-      do 550 j = 2, p
-         g(j) = g(j) + lam2*x(j)
- 550  continue
-      g(p+1) = lam
+      if (p .gt. 1) then
+         do 530 j = 2, p
+            g(j) = g(j) + lam2*x(j)
+ 530     continue
+      end if
+      if (k .gt. 0) then
+         do 560 j = 1, k
+            g(p+j) = lam
+ 560     continue
+      end if
 
       return
 

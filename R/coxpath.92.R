@@ -1,7 +1,11 @@
-"step.length.cox" <- function(corrector, x, d, rslist, wlist, min.lambda, max.arclength, add.newvars, backshoot, approx.Gram, h0=NULL, eps=.Machine$double.eps)
+"step.length.cox" <- function(corrector, lambda2, x, d, rslist, wlist, min.lambda, max.arclength, add.newvars, backshoot, approx.Gram, h0=NULL, eps=.Machine$double.eps)
   {
     active <- corrector$active
+    force.active <- corrector$force.active    
     lambda <- corrector$lambda - min.lambda
+    fk <- length(force.active)
+    k <- length(active) - fk
+    Lambda2 <- rep(lambda2, length(active))
     C <- corrector$corr
     b <- corrector$b[active]
     eta <- corrector$eta
@@ -30,7 +34,11 @@
       diag(AA) <- A
       dhdb <- t(x[ ,active,drop=FALSE]) %*% AA %*% x
     }
-    db <- solve(dhdb[ ,active,drop=FALSE]) %*% sign(C[active])
+    if (is.null(force.active)) {
+      if (length(active)==1) db <- sign(C[active]) / (dhdb[ ,active]+lambda2)
+      else db <- solve(dhdb[ ,active,drop=FALSE]+diag(Lambda2)) %*% sign(C[active])
+    }
+    else db <- solve(dhdb[ ,active,drop=FALSE]+diag(Lambda2)) %*% c(rep(0, length(force.active)), sign(C[active[-force.active]]))
     newa <- NULL
     if (!backshoot) {
       Cmax <- max(abs(C))
@@ -39,7 +47,8 @@
       a <- drop(t(db) %*% dhdb[ ,inactive,drop=FALSE])
       gam <- c((Cmax - C[inactive])/(1 - a), (Cmax + C[inactive])/(1 + a))
       ha <- min(gam[gam > eps], lambda)
-      hd <- -b/db
+      if (is.null(force.active)) hd <- -b/db
+      else hd <- -b[-force.active]/db[-force.active]
       h <- min(hd[hd > eps], ha)
       if (h==ha & h < lambda) {
         ii <- which(gam > eps)
@@ -53,7 +62,8 @@
       h <- min(h, max.arclength/sum(abs(db)))
     }
     else {
-      hd <- b/db
+      if (is.null(force.active)) hd <- b/db
+      else hd <- b[-force.active]/db[-force.active]
       ii <- hd > eps & hd < -h0
       if (any(ii)) h <- -max(hd[ii])
       else h = 0
@@ -66,36 +76,45 @@
     b - step$db * step$h
   }
 
-"corrector.cox" <- function(x, y, d, rslist, wlist, rept, method, active, tmpa, lambda, b0, a0, M0, bshoot.threshold, relax.lambda, trace, eps = .Machine$double.eps)
+"corrector.cox" <- function(x, y, d, rslist, wlist, rept, method, active, tmpa, force.active, lambda, lambda2, b0, a0, bshoot.threshold, relax.lambda, trace, eps = .Machine$double.eps)
   {
-    param <- c(b0[tmpa], M0, a0, -b0[tmpa]-a0, 0, b0[tmpa]-a0)
-    xa <- x[ , tmpa, drop=FALSE]
-    nobs <- nrow(xa)
-    p <- ncol(xa)
-    xstate <- rep(2, 4*p+2)
-    xstate[param==0] <- 0
-    lenz <- 10 + (p+5)*nobs 
-    zsmall <- rep(0, lenz)
-    zsmall[1:3] <- c(nobs, lambda, method)
-    zsmall[10 + seq((p+3)*nobs)] <- c(as.vector(xa), y, d, rept)
-    sol <- .Fortran("coxsolution",
-                    k = as.integer(p),
-                    n = as.integer(2*p+1),
-                    nb = as.integer(4*p+2),
-                    ne = as.integer(5*p+1),
-                    hs = as.integer(xstate),
-                    xn = as.double(param),
-                    zsmall = as.double(zsmall),
-                    lenz = as.integer(lenz),
-                    inform = as.integer(0))
-    b0[tmpa] <- sol$xn[1:p]
-    M0 <- sol$xn[p+1]
-    a0 <- sol$xn[(p+2):(2*p+1)]
-    if (sol$inform != 0) cat("\nconvergence warning in corrector step\n")
-    ii <- 10+(p+3)*nobs
-    eta <- sol$zsmall[ii+c(1:nobs)]
-    ii <- 10+(p+4)*nobs
-    wsum <- sol$zsmall[ii+c(1:nobs)][d==1]
+    nobs <- length(y)
+    p <- length(tmpa)
+    fk <- length(force.active)
+    k <- p - fk
+    if (p > 0) {
+      if (fk == 0) param <- c(b0[tmpa], a0, 0, -b0[tmpa]-a0, b0[tmpa]-a0)
+      else param <- c(b0[tmpa], a0, 0, -b0[tmpa[-force.active]]-a0, b0[tmpa[-force.active]]-a0)
+      xa <- x[ , tmpa, drop=FALSE]
+      xstate <- rep(2, p+3*k+1)
+      xstate[param==0] <- 0
+      lenz <- 10 + (p+5)*nobs 
+      zsmall <- rep(0, lenz)
+      zsmall[1:5] <- c(nobs, lambda, lambda2, method, k)
+      zsmall[10 + seq((p+3)*nobs)] <- c(as.vector(xa), y, d, rept)
+      sol <- .Fortran("coxsolution",
+                      k = as.integer(k),
+                      n = as.integer(p+k),
+                      nb = as.integer(p+3*k+1),
+                      ne = as.integer(p+5*k),
+                      hs = as.integer(xstate),
+                      xn = as.double(param),
+                      zsmall = as.double(zsmall),
+                      lenz = as.integer(lenz),
+                      inform = as.integer(0))
+      b0[tmpa] <- sol$xn[1:p]
+      if (k > 0) a0 <- sol$xn[(p+1):(p+k)]
+      if (sol$inform != 0) cat("\nconvergence warning in corrector step\n")
+      ii <- 10+(p+3)*nobs
+      eta <- sol$zsmall[ii+c(1:nobs)]
+      ii <- 10+(p+4)*nobs
+      wsum <- sol$zsmall[ii+c(1:nobs)][d==1]
+      lp <- sol$zsmall[6]
+    }
+    else {
+      eta <- rep(1, nobs)
+      wsum <- rep(0, sum(d))
+    }
     rset <- NULL
     a <- d==1
     for (i in 1:sum(a)) {
@@ -104,26 +123,44 @@
         rset <- c(rset0, rslist[[i]])
       }
       w <- c(rep(1,length(rset0)), wlist[[i]]) * eta[rset]
+      if (wsum[i] == 0) wsum[i] <- sum(w)
       a[rset] <- a[rset] - w/wsum[i]
     }
-    corr <- apply(x*a, 2, sum)
-    i <- which(abs(corr) >= lambda*(1-relax.lambda))
-    newa <- i[!i%in%tmpa]
-    newactive <- i[!i%in%active]
-    i <- which(abs(b0[active]) < eps)
-    inactive <- active[i]
-    active <- active[!active%in%inactive]
-    active <- c(active, newactive)
-    b0[-active] <- 0
+    if (p == 0) lp <- -sum(log(wsum))
+    corr <- apply(x*a, 2, sum) - lambda2*b0
+    if (k > 0) {
+      i <- which(abs(corr) >= lambda*(1-relax.lambda))
+      newa <- i[!i%in%tmpa]
+      newactive <- i[!i%in%active]
+      if (fk == 0) {
+        i <- which(abs(b0[active]) < eps)
+        inactive <- active[i]
+      }
+      else {
+        i <- which(abs(b0[active[-force.active]]) < eps)
+        inactive <- active[-force.active][i]
+      }
+      active <- active[!active%in%inactive]
+      active <- c(active, newactive)
+      b0[-active] <- 0
+    }
+    else {
+      if (fk == 0) lambda <- max(abs(corr))
+      else lambda <- max(abs(corr[-active]))
+      c1 <- which(abs(corr) == lambda)
+      newa <- newactive <- c1
+      inactive <- NULL
+      active <- c(active, c1)
+    }
     df <- length(active) - length(newactive)
     backshoot <- ifelse(any(abs(b0[newactive]) > bshoot.threshold), TRUE, FALSE)
-    list(eta=eta, wsum=wsum, b=b0, a=a0, M=M0, lp=sol$zsmall[4], active=active, newactive=newactive, newa=newa, inactive=inactive, corr=corr, lambda=lambda, df=df, backshoot=backshoot)
+    list(eta=eta, wsum=wsum, b=b0, a=a0, lp=lp, active=active, force.active=force.active, newactive=newactive, newa=newa, inactive=inactive, corr=corr, lambda=lambda, df=df, backshoot=backshoot)
   }
 
-"coxpath" <- function(data, method = c("breslow", "efron"), max.steps = NULL, max.norm = 100*ncol(data$x), min.lambda = 0, max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1, relax.lambda = 1e-7, approx.Gram = FALSE, eps = .Machine$double.eps, trace = FALSE)
+"coxpath" <- function(data, nopenalty.subset = NULL, method = c("breslow", "efron"), lambda2 = 1e-5, max.steps = 10*min(nrow(data$x), ncol(data$x)), max.norm = 100*ncol(data$x), min.lambda = (if (ncol(x) >= nrow(x)) 1e-3 else 0), max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1, relax.lambda = 1e-7, approx.Gram = FALSE, standardize = TRUE, eps = .Machine$double.eps, trace = FALSE)
   {
     method <- match.arg(method)
-    method <- switch(method, breslow = 1, efron = 2)
+    mthd <- switch(method, breslow = 1, efron = 2)
     x <- data$x
     time <- data$time
     status <- data$status
@@ -133,7 +170,7 @@
     oo <- o[order(time[o], decreasing=T)]
     x <- x[oo, ]
     time <- time[oo]
-    status <- status[oo]
+    status <- status[oo]    
     complete <- which(status==1)
     nnc <- length(complete)
     rept <- rep(0, n)
@@ -149,7 +186,7 @@
         rslist[[i]] <- which(ii)
       }
       wlist[[i]] <- rep(1, sum(ii))
-      if (method == 2) {
+      if (mthd == 2) {
         if (rept[complete[i]] > 0) {
           tie <- time[ii]==time[complete[i]] & status[ii]==1
           di <- max(rept[ii][tie])
@@ -157,14 +194,15 @@
         }
       }  
     }
-    if (m >= n) min.lambda <- ifelse(min.lambda == 0, 1e-3, min.lambda)
-    if (is.null(max.steps)) max.steps <- 10*min(m, n)
     one <- rep(1, n)
     meanx <- drop(one %*% x)/n
     x <- scale(x, meanx, FALSE)
-    sdx <- sqrt(drop(one %*% (x^2))/(n-1))
-    ignore <- sdx < eps
-    if (any(ignore)) sdx[ignore] <- 1
+    if (standardize) {
+      sdx <- sqrt(drop(one %*% (x^2))/(n-1))
+      ignore <- sdx < eps
+      if (any(ignore)) sdx[ignore] <- 1
+    }
+    else sdx <- rep(1, m)
     x <- scale(x, FALSE, sdx)
     if (is.null(dimnames(x)[[2]])) xnames <- paste("x",seq(m),sep="")
     else xnames <- dimnames(x)[[2]]
@@ -174,60 +212,58 @@
     actions <- vector("list", length=max.steps)
     backshoot <- FALSE
     b <- rep(0, m)
-    rset <- NULL
-    wsum <- rep(0, nnc)
-    a <- status==1
-    for (i in 1:nnc) {
-      if (!is.null(rslist[[i]])) {
-        rset0 <- rset
-        rset <- c(rset0, rslist[[i]])
-      }
-      w <- c(rep(1,length(rset0)), wlist[[i]])
-      wsum[i] <- sum(w)
-      a[rset] <- a[rset] - w/wsum[i]
+    if (!is.null(nopenalty.subset)) {
+      force.active <- c(1:length(nopenalty.subset))
+      names(nopenalty.subset) <- xnames[nopenalty.subset]
     }
-    init.corr <- apply(x*a, 2, sum)
+    else force.active <- NULL
+    corrector <- corrector.cox(x, time, status, rslist, wlist, rept, mthd, nopenalty.subset, nopenalty.subset, force.active, 0, lambda2, b, NULL, bshoot.threshold, relax.lambda, trace)
+    if (trace & !is.null(force.active))
+      cat("The model begins with",xnames[nopenalty.subset],"\n")
     k <- 1
-    lp[k] <- -sum(log(wsum))
-    cmat[k, ] <- init.corr
-    lam.vec[k] <- lambda <- max(abs(init.corr))
-    actions[[k]] <- active <- which(abs(init.corr) == lambda)
-    names(actions[[k]]) <- xnames[abs(active)]
+    b <- bmat.pred[k, ] <- bmat.corr[k, ] <- corrector$b
+    cmat[k, ] <- corrector$corr
+    lam.vec[k] <- lambda <- corrector$lambda
+    new.df[k] <- df[k] <- corrector$df
+    lp[k] <- corrector$lp
+    actions[[k]] <- active <- corrector$active
+    names(actions[[k]]) <- xnames[active]    
     if (trace) {
       cat(paste("Lambda=",lambda,"lets the first factor in.\nStep",k,":"))
-      cat(paste("\t",xnames[active],"added"))
-    }
-    corrector <- list(eta=rep(1, n), wsum=wsum, b=sign(init.corr), active=active, corr=init.corr, lambda=lambda) 
+      if (is.null(force.active))
+        cat(paste("\t",xnames[active],"added"))
+      else cat(paste("\t",xnames[active[-force.active]],"added"))
+    }    
     while(TRUE) {
       if (!backshoot) {
         k <- k + 1
         if (trace) cat(paste("\nStep",k,":"))
-        step <- step.length.cox(corrector, x, status, rslist, wlist, min.lambda, max.arclength, add.newvars, backshoot, approx.Gram)
+        step <- step.length.cox(corrector, lambda2, x, status, rslist, wlist, min.lambda, max.arclength, add.newvars, backshoot, approx.Gram)
         b[active] <- predictor.cox(b[active], step)
         bmat.pred[k, ] <- b
         step.len[k-1] <- h <- step$h
         lam.vec[k] <- lambda <- lambda + h
         tmpa <- c(active, step$newa)
-        a <- abs(b[tmpa])
-        M <- sum(a)
+        if (is.null(force.active)) a <- abs(b[tmpa])
+        else a <- abs(b[tmpa[-force.active]])
       }
       else {
         if (trace) cat(paste("\nStep",k,":"))
-        step <- step.length.cox(corrector, x, status, rslist, wlist, min.lambda, Inf, add.newvars, backshoot, approx.Gram, h)
+        step <- step.length.cox(corrector, lambda2, x, status, rslist, wlist, min.lambda, Inf, add.newvars, backshoot, approx.Gram, h)
         step.len[k-1] <- h + step$h
         h <- step$h
         lam.vec[k] <- lambda <- lambda + h
-        a <- abs(b[tmpa])
-        M <- sum(a)
+        if (is.null(force.active)) a <- abs(b[tmpa])
+        else a <- abs(b[tmpa[-force.active]])
       }
-      corrector <- corrector.cox(x, time, status, rslist, wlist, rept, method, active, tmpa, lambda, b, a, M, bshoot.threshold, relax.lambda, trace)
+      corrector <- corrector.cox(x, time, status, rslist, wlist, rept, mthd, active, tmpa, force.active, lambda, lambda2, b, a, bshoot.threshold, relax.lambda, trace)
       newa <- corrector$newa
       while(length(newa) > 0) {
         if (trace) cat(paste("\nRepeating step",k,":"))
         tmpa <- c(tmpa, newa)
-        a <- abs(b[tmpa])
-        M <- sum(a)
-        corrector <- corrector.cox(x, time, status, rslist, wlist, rept, method, active, tmpa, lambda, b, a, M, bshoot.threshold, relax.lambda, trace)
+        if (is.null(force.active)) a <- abs(b[tmpa])
+        else a <- abs(b[tmpa[-force.active]])
+        corrector <- corrector.cox(x, time, status, rslist, wlist, rept, mthd, active, tmpa, force.active, lambda, lambda2, b, a, bshoot.threshold, relax.lambda, trace)
         newa <- corrector$newa 
       }
       newaction <- c(corrector$newactive, -corrector$inactive)
@@ -261,7 +297,7 @@
         cmat[k, ] <- corrector$corr
         lp[k] <- corrector$lp
         df[k] <- corrector$df
-        if (lambda <= min.lambda | k == max.steps | length(corrector$active) > n | corrector$M >= max.norm) {
+        if (lambda <= min.lambda | k == max.steps | length(corrector$active) > n | sum(corrector$a) >= max.norm) {
           if (trace & lambda <= min.lambda) cat("\nLambda=",min.lambda,"\n")
           else if (trace & k == max.steps) cat(paste("\nMaximum steps (",max.steps,") taken.\n"))                     
           else if (length(corrector$active) > n) {
@@ -283,7 +319,7 @@
     lp <- lp[1:k]
     aic <- -2*lp + 2*df
     bic <- -2*lp + log(n)*df
-    object <- list(lambda=lam.vec[1:k], step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, loglik = lp, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx=meanx, sdx=sdx, xnames=xnames, method=ifelse(method==1, "breslow", "efron"))
+    object <- list(lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, loglik = lp, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx = meanx, sdx = sdx, xnames = xnames, method = method, nopenalty.subset = nopenalty.subset, standardize = standardize)
     class(object) <- "coxpath"
     object
   }
@@ -306,7 +342,9 @@
     }
     m <- ncol(coef.pred)
     k <- nrow(coef.pred)
-    s <- switch(xvar, norm = apply(abs(coef.corr), 1, sum),
+    s <- switch(xvar, 
+      norm = if (is.null(object$nopenalty.subset)) apply(abs(coef.corr), 1, sum)
+       else apply(abs(coef.corr[ ,-object$nopenalty.subset,drop=FALSE]), 1, sum),
       lambda = lam,
       step = seq(k))
     if (xvar != "lambda") {
@@ -336,7 +374,8 @@
       else title(main, line=2.5)
     }
     else {
-      matplot(s[xi], coef.corr[xi, ], xlab = xname, ..., type = "b", pch = "*", ylab = "Standardized coefficients", lty=1)
+      ylab <- ifelse(object$standardize, "Standardized coefficients", "Coefficients")
+      matplot(s[xi], coef.corr[xi, ], xlab = xname, ..., type = "b", pch = "*", ylab = ylab, lty=1)
       if (is.null(main)) title("Coefficient path", line=2.5)
       else title(main, line=2.5)
       abline(h = 0, lty = 3)
@@ -355,7 +394,7 @@
   {
     mode <- match.arg(mode)
     type <- match.arg(type)
-    if (missing(data) & type!="coefficient") {
+    if (missing(data) & type!="coefficients") {
         warning("No data argument; type switched to coefficients")
         type <- "coefficients"
     }    
@@ -365,6 +404,8 @@
     }
     b <- object$b.corrector
     std.b <- scale(b, FALSE, 1/object$sdx)
+    if (!is.null(object$nopenalty.subset))
+      std.b <- std.b[ ,-object$nopenalty.subset, drop=FALSE]
     k <- nrow(b)
     steps <- seq(k)
     if (missing(s)) {
@@ -507,27 +548,27 @@
     time <- data$time
     status <- data$status
     n <- length(time)
-    all.folds <- split(sample(seq(n)), rep(1:nfold, length=n))
-    lpmat <- matrix(0, length(fraction), nfold)
+    folds <- split(sample(seq(n)), rep(1:nfold, length=n))
+    errormat <- matrix(0, length(fraction), nfold)
     for (i in seq(nfold)) {
-        omit <- all.folds[[i]]
+        omit <- folds[[i]]
         trdata <- list(x=x[-omit, ], time=time[-omit], status=status[-omit])
         tsdata <- list(x=x[omit, ], time=time[omit], status=status[omit])
-        fit <- coxpath(trdata, method, ...)
+        fit <- coxpath(trdata, method=method, ...)
         pred <- switch(mode, norm = {
           predict(fit, tsdata, fraction, "loglik", "norm.fraction")
         }, lambda = {
           predict(fit, tsdata, fraction, "loglik", "lambda.fraction")
         })
         if (length(omit) == 1) pred <- matrix(pred, nrow = 1)
-        lpmat[ ,i] <- pred
+        errormat[ ,i] <- -pred/length(omit)
         cat("CV Fold", i, "\n")
     }
-    cv.error <- apply(lpmat, 1, mean)
-    cv.se <- sqrt(apply(lpmat, 1, var)/nfold)
-    object <- list(fraction = fraction, cv.error = cv.error, cv.se = cv.se, folds=all.folds)
+    cv.error <- apply(errormat, 1, mean)
+    cv.se <- sqrt(apply(errormat, 1, var)/nfold)
+    object <- list(fraction = fraction, cv.error = cv.error, cv.se = cv.se, folds=folds)
     if (plot.it) {
-      plot(fraction, cv.error, type="l", ylim=range(c(cv.error-cv.se, cv.error+cv.se)), xlab=switch(mode, norm="Norm fraction", lambda="log(lambda) fraction"), ylab="Log-partial-likelihood", main="Cross-validated log-partial-likelihood")
+      plot(fraction, cv.error, type="l", ylim=range(c(cv.error-cv.se, cv.error+cv.se)), xlab=switch(mode, norm="Norm fraction", lambda="log(lambda) fraction"), ylab="Minus log-partial-likelihood", main="Cross-validated minus log-partial-likelihood")
       if (se) segments(fraction, cv.error-cv.se, fraction, cv.error+cv.se)
     }
     invisible(object)
@@ -539,6 +580,13 @@
     xn <- x$xnames
     k <- length(actions)
     for (i in 1:k) {
-      if (length(actions[[i]]) > 0) cat("Step",i,":",xn[abs(actions[[i]])],"\n")
+      if (length(actions[[i]]) > 0) {
+        cat("Step",i,":")
+        for (ii in actions[[i]]) {
+          if (ii > 0) cat(" ",xn[ii])
+          else cat(" -",xn[-ii])
+        }
+        cat("\n")
+      }
     }
   }

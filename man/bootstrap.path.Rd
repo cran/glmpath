@@ -15,43 +15,43 @@
                  method=c("aic","bic"), trace=FALSE, ...)
 }
 \arguments{
-\item{x}{
-  matrix of features
-}
-\item{y}{
-  response 
-}
-\item{data}{
-  a list of data components. If \code{path=glmpath,} \code{data}
-  consists of \code{x:} a matrix of features and \code{y:}
-  response. \code{data} is not needed if above \code{x} and \code{y} are
-  input separately. If \code{path=coxpath,} \code{data} must be
-  provided, including \code{x:} a matrix of features, \code{time:} the
-  survival time, and \code{status:} censor status with 1 if died and 0
-  if censored.
-}
-\item{B}{
-  number of bootstrap runs
-}
-\item{index}{
-  matrix (\code{B} rows, \code{ncol(x)} columns) of bootstrap sample
-  indices. Each row is a vector of indices for a bootstrap run. If
-  \code{index=NULL,} the indices are randomly chosen. 
-}
-\item{path}{
-  Bootstrap coefficients for either \code{glmpath} or \code{coxpath} are
-  computed. Default is \code{path=glmpath.} 
-}
-\item{method}{
-  For each bootstrap run, the regularization parameter is determined
-  based on either \code{aic} or \code{bic.} Default is \code{aic.}
-}
-\item{trace}{
-  If \code{TRUE,} the number of bootstrap runs is printed out.
-}
-\item{...}{
-  other options for \code{glmpath} or \code{coxpath}
-}
+  \item{x}{
+    matrix of features
+  }
+  \item{y}{
+    response 
+  }
+  \item{data}{
+    a list of data components. If \code{path=glmpath,} \code{data}
+    consists of \code{x:} a matrix of features and \code{y:}
+    response. \code{data} is not needed if above \code{x} and \code{y}
+    are input separately. If \code{path=coxpath,} \code{data} must be
+    provided, including \code{x:} a matrix of features, \code{time:} the
+    survival time, and \code{status:} censor status with 1 if died and 0
+    if censored.
+  }
+  \item{B}{
+    number of bootstrap runs
+  }
+  \item{index}{
+    matrix (\code{B} rows, \code{ncol(x)} columns) of bootstrap sample
+    indices. Each row is a vector of indices for a bootstrap run. If
+    \code{index=NULL,} the indices are randomly chosen.
+  }
+  \item{path}{
+    Bootstrap coefficients for either \code{glmpath} or \code{coxpath}
+    are computed. Default is \code{path=glmpath.} 
+  }
+  \item{method}{
+    For each bootstrap run, the regularization parameter is determined
+    based on either \code{aic} or \code{bic.} Default is \code{aic.}
+  }
+  \item{trace}{
+    If \code{TRUE,} the number of bootstrap runs is printed out.
+  }
+  \item{...}{
+    other options for \code{glmpath} or \code{coxpath}
+  }
 }
 \value{
   \code{bootstrap.path} returns a \code{bootpath} object, which is a

@@ -10,29 +10,33 @@
   scatter plots of the bootstrap coefficients. 
 }
 \usage{
-  plot.bootpath(x, type=c("histogram","pairplot"), mfrow = NULL, ...)
+  plot.bootpath(x, type=c("histogram","pairplot"),
+                mfrow = NULL, mar = NULL, ...)
 }
 \arguments{
-\item{x}{
-  a \code{bootpath} object from \code{bootstrap.path.}
-}
-\item{type}{
-  If \code{type=histogram,} the histograms of bootstrap coefficients for
-  individual features are generated. A red vertical bar indicates the
-  coefficient computed using the whole data. A thick bar at zero
-  indicates the frequency of the zero coefficients. If
-  \code{type=pairplot,} the pairwise scatter plots of the bootstrap
-  coefficients are generated. A red solid dot indicates the pair of
-  coefficients computed using the whole data. Default is
-  \code{histogram.}
-}
-\item{mfrow}{
-  determines the numbers of rows and columns of the histograms on a
-  page. 2 rows are generated as a default.
-}
-\item{...}{
-  other options for the plot
-}
+  \item{x}{
+    a \code{bootpath} object from \code{bootstrap.path.}
+  }
+  \item{type}{
+    If \code{type=histogram,} the histograms of bootstrap coefficients
+    for individual features are generated. A red vertical bar indicates
+    the coefficient computed using the whole data. A thick bar at zero
+    indicates the frequency of the zero coefficients. If
+    \code{type=pairplot,} the pairwise scatter plots of the bootstrap
+    coefficients are generated. A red solid dot indicates the pair of
+    coefficients computed using the whole data. Default is
+    \code{histogram.}    
+  }
+  \item{mfrow}{
+    determines the numbers of rows and columns of the histograms on a
+    page. 2 rows are generated as a default.
+  }
+  \item{mar}{
+    margin relative to the current font size
+  }
+  \item{...}{
+    other options for the plot
+  }
 }
 \details{
   Fitting \code{glmpath} or \code{coxpath} gives a series of solution
