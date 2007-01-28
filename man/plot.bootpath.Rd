@@ -53,7 +53,7 @@
 
   Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
   Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://www.stanford.edu/~mypark} or
+  websites, \url{http://stat.stanford.edu/~mypark} or
   \url{http://stat.stanford.edu/~hastie/pub.htm}.
 }
 \author{Mee Young Park and Trevor Hastie}

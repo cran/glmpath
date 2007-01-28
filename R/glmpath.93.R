@@ -113,6 +113,7 @@
 
 "glmpath" <- function(x, y, data, nopenalty.subset = NULL, family = binomial, weight = rep(1,length(y)), lambda2 = 1e-5, max.steps = 10*min(nrow(x), ncol(x)), max.norm = 100*ncol(x), min.lambda = (if (ncol(x) >= nrow(x)) 1e-6 else 0), max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1, relax.lambda = 1e-8, standardize = TRUE, eps = .Machine$double.eps, trace = FALSE)
   {
+    call <- match.call()
     if (is.character(family)) 
         family <- get(family, mode = "function", envir = parent.frame())
     if (is.function(family)) 
@@ -270,7 +271,7 @@
       nopenalty.subset <- nopenalty.subset[-1]-1
     }
     else nopenalty.subset <- NULL
-    object <- list(lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, deviance = dev, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions = actions[1:k], meanx = meanx, sdx = sdx, xnames = xnames, family = family, weight = weight, nopenalty.subset = nopenalty.subset, standardize = standardize)
+    object <- list(call = call, lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, deviance = dev, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions = actions[1:k], meanx = meanx, sdx = sdx, xnames = xnames, family = family, weight = weight, nopenalty.subset = nopenalty.subset, standardize = standardize)
     class(object) <- "glmpath"
     object
   }

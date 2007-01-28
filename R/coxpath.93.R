@@ -159,6 +159,7 @@
 
 "coxpath" <- function(data, nopenalty.subset = NULL, method = c("breslow", "efron"), lambda2 = 1e-5, max.steps = 10*min(nrow(data$x), ncol(data$x)), max.norm = 100*ncol(data$x), min.lambda = (if (ncol(x) >= nrow(x)) 1e-3 else 0), max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1, relax.lambda = 1e-7, approx.Gram = FALSE, standardize = TRUE, eps = .Machine$double.eps, trace = FALSE)
   {
+    call <- match.call()
     method <- match.arg(method)
     mthd <- switch(method, breslow = 1, efron = 2)
     x <- data$x
@@ -319,7 +320,7 @@
     lp <- lp[1:k]
     aic <- -2*lp + 2*df
     bic <- -2*lp + log(n)*df
-    object <- list(lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, loglik = lp, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx = meanx, sdx = sdx, xnames = xnames, method = method, nopenalty.subset = nopenalty.subset, standardize = standardize)
+    object <- list(call = call, lambda=lam.vec[1:k], lambda2=lambda2, step.length=abs(step.len[1:(k-1)]), corr = cmat, new.df = new.df[1:k], df = df, loglik = lp, aic = aic, bic = bic, b.predictor = bmat.pred, b.corrector = bmat.corr, actions=actions[1:k], meanx = meanx, sdx = sdx, xnames = xnames, method = method, nopenalty.subset = nopenalty.subset, standardize = standardize)
     class(object) <- "coxpath"
     object
   }
@@ -492,7 +493,8 @@
       fit$var <- solve(info)
       fit$loglik <- c(fit$loglik[1], junk$loglik)
       fit$iter <- fit$residuals <- NULL
-      fit$linear.predictors <- junk$eta - sum(coef*object$meanx)
+      browser()
+      fit$linear.predictors <- junk$eta - sum(coef*object$meanx[active])
       fit$method <- object$method
       fit$assign <- seq(a)
       fit$wald.test <- sum(coef*(info %*% coef))
