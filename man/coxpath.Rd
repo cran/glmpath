@@ -11,12 +11,13 @@
 }
 \usage{
   coxpath(data, nopenalty.subset = NULL, method = c("breslow", "efron"),
-          lambda2 = 1e-5, max.steps = 10*min(nrow(data$x), ncol(data$x)),
-          max.norm = 100*ncol(data$x),
-          min.lambda = (if (ncol(x) >= nrow(x)) 1e-3 else 0),
-          max.arclength = Inf, add.newvars = 1, bshoot.threshold = 0.1,
-          relax.lambda = 1e-7, approx.Gram = FALSE, standardize = TRUE,
-          eps = .Machine$double.eps, trace = FALSE) 
+          lambda2 = 1e-5, max.steps = 10*min(n, m), max.norm = 100*m,
+          min.lambda = (if (m >= n) 1e-3 else 0), max.vars = Inf,
+          max.arclength = Inf, frac.arclength = 1, add.newvars = 1,
+          bshoot.threshold = 0.1, relax.lambda = 1e-7,
+          approx.Gram = FALSE, standardize = TRUE,
+          function.precision = 3e-13, eps = .Machine$double.eps,
+          trace = FALSE)
 }
 \arguments{
   \item{data}{
@@ -49,14 +50,28 @@
     an optional (lower) bound for the size of \eqn{\lambda}. When
     \code{ncol(x)} is relatively large, the coefficient estimates are
     prone to numerical precision errors at extremely small
-    \eqn{\lambda}. In such cases, early stopping is recommended (using
-    \code{max.steps,} \code{max.norm,} or \code{min.lambda}). Default is
-    \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-3} otherwise.
+    \eqn{\lambda}. In such cases, early stopping is recommended. Default
+    is \code{0} for \code{ncol(x) < nrow(x)} cases and \code{1e-3}
+    otherwise.
+  }
+  \item{max.vars}{
+    an optional bound for the number of active variables. Default is
+    \code{Inf.}
   }
   \item{max.arclength}{
     an optional bound for arc length (L1 norm) of a step. If
     \code{max.arclength} is extremely small, an exact nonlinear path is
     produced. Default is \code{Inf.}
+  }
+  \item{frac.arclength}{
+    Under the default setting, the next step size is computed so that
+    the active set changes right at the next value of lambda. When
+    \code{frac.arclength} is assigned some fraction between 0 and 1, the
+    step size is decreased by the factor of \code{frac.arclength} in arc
+    length. If \code{frac.arclength=0.2,} the step length is adjusted so
+    that the active set would change after five smaller steps. Either
+    \code{max.arclength} or \code{frac.arclength} can be used to force
+    the path to be more accurate. Default is \code{1.}
   }
   \item{add.newvars}{
     \code{add.newvars} candidate variables (that are currently not in
@@ -73,7 +88,7 @@
   }
   \item{relax.lambda}{
     A variable joins the active set if \eqn{|l'(\beta)| >
-      \lambda}(1-\code{relax.lambda}). Default is \code{1e-7.} If no
+      \lambda}*(1-\code{relax.lambda}). Default is \code{1e-7.} If no
     variable joins the active set even after many (>20) steps, the user
     should increase \code{relax.lambda} to \code{1e-6} or \code{1e-5,}
     but not more than that. This adjustment is sometimes needed because
@@ -89,6 +104,11 @@
   \item{standardize}{
     If \code{TRUE,} predictors are standardized to have a unit variance.
   }
+  \item{function.precision}{
+    \code{function.precision} parameter used in the internal
+    solver. Default is \code{3e-13.} The algorithm is faster, but less
+    accurate with relaxed, larger \code{function precision.}
+  }
   \item{eps}{
     an effective zero
   }
@@ -99,7 +119,8 @@
 \value{
   A \code{coxpath} object is returned.
   \item{lambda}{
-    vector of \eqn{\lambda} values for which exact coefficients are computed
+    vector of \eqn{\lambda} values for which the exact coefficients are
+    computed
   }
   \item{lambda2}{
     \eqn{\lambda_2} used
@@ -131,6 +152,10 @@
   }
   \item{b.corrector}{
     matrix of coefficient estimates from the corrector steps
+  }
+  \item{new.A}{
+    vector of boolean values indicating the steps at which the active
+    set changed (to be used in the plot/predict functions)
   }
   \item{actions}{
     actions taken at each step
@@ -168,14 +193,13 @@
   coxpath.
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{
-cv.coxpath, plot.coxpath, predict.coxpath
+cv.coxpath, plot.coxpath, predict.coxpath, summary.coxpath
 }
 \examples{
 data(lung.data)

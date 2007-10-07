@@ -19,11 +19,11 @@
   }
   \item{type}{
     If \code{type=histogram,} the histograms of bootstrap coefficients
-    for individual features are generated. A red vertical bar indicates
-    the coefficient computed using the whole data. A thick bar at zero
-    indicates the frequency of the zero coefficients. If
+    for individual features are generated. The red vertical bar
+    indicates the coefficient computed using the whole data. The thick
+    bar at zero indicates the frequency of the zero coefficients. If
     \code{type=pairplot,} the pairwise scatter plots of the bootstrap
-    coefficients are generated. A red solid dot indicates the pair of
+    coefficients are generated. The red solid dot indicates the pair of
     coefficients computed using the whole data. Default is
     \code{histogram.}    
   }
@@ -51,10 +51,9 @@
   Bradley Efron and Robert Tibshirani (1993) \emph{An Introduction to
     the Bootstrap} CHAPMAN & HALL/CRC, Boca Raton.
 
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{

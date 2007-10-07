@@ -28,30 +28,29 @@
     \code{nfold=5.}
   }
   \item{fraction}{
-    fraction of the L1 norm or log(\eqn{\lambda}) with respect to their
-    maximum values at which CV values are computed. Default is
+    the fraction of L1 norm or log(\eqn{\lambda}) with respect to their
+    maximum values at which the CV errors are computed. Default is
     \code{seq(0,1,length=100).}
   }
   \item{mode}{
-    If \code{mode=norm,} cross-validation is done at certain values of
-    L1 norm. If \code{mode=lambda,} cross-validation is done at certain
+    If \code{mode=norm,} cross-validation is run at certain values of
+    L1 norm. If \code{mode=lambda,} cross-validation is run at certain
     values of log(\eqn{\lambda}). Default is \code{norm.}
   }
   \item{plot.it}{
-    If \code{TRUE,} the CV curve is plotted.
+    If \code{TRUE,} CV curve is plotted.
   }
   \item{se}{
-    If \code{TRUE,} the standard errors are plotted.
+    If \code{TRUE,} standard errors are plotted.
   }
   \item{...}{
     other options for coxpath
   }
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{

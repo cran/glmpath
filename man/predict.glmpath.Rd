@@ -12,7 +12,8 @@
   predict.glmpath(object, newx, newy, s, type = c("link", "response",
                   "loglik", "coefficients"), mode = c("step",
                   "norm.fraction", "norm", "lambda.fraction", "lambda"),
-                  weight = NULL, eps = .Machine$double.eps, ...)
+                  weight = NULL, offset = NULL,
+                  eps = .Machine$double.eps, ...)
 }
 \arguments{
   \item{object}{
@@ -28,7 +29,10 @@
     \code{type=loglik,} \code{newy} is required.
   }
   \item{s}{
-    the values of \code{mode} at which the predictions are made
+    the values of \code{mode} at which the predictions are made. If
+    \code{s} is missing, then the steps at which the active set changed
+    are used, and thus, \code{mode} is automatically switched to
+    \code{step.}
   }
   \item{type}{
     If \code{type=link,} the linear predictors are returned; if
@@ -52,6 +56,10 @@
     an optional vector of weights for observations. \code{weight} is
     effective only if \code{type=loglik.}
   }
+  \item{offset}{
+    If \code{offset} was used in \code{object,} \code{offset} must be
+    provided for prediction, unless \code{type=coefficients.}
+  }
   \item{eps}{
     an effective zero
   }
@@ -60,10 +68,9 @@
   }
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{

@@ -1,4 +1,4 @@
 useDynLib(glmpath)
 
-export(bootstrap.path, coxpath, cv.coxpath, cv.glmpath, glmpath, plot.bootpath, plot.coxpath, plot.glmpath, predict.coxpath, predict.glmpath, print.coxpath, print.glmpath)
+export(bootstrap.path, coxpath, cv.coxpath, cv.glmpath, glmpath, plot.bootpath, plot.coxpath, plot.glmpath, predict.coxpath, predict.glmpath, print.coxpath, print.glmpath, summary.coxpath, summary.glmpath)
 

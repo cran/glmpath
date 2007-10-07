@@ -28,7 +28,10 @@
   }
   \item{s}{
     the values of \code{mode} at which the predictions are made. If
-    \code{type=coxph,} only the first element of \code{s} is used.
+    \code{type=coxph,} only the first element of \code{s} is used. If
+    \code{s} is missing, then the steps at which the active set changed
+    are used, and thus, \code{mode} is automatically switched to
+    \code{step.}
   }
   \item{type}{
     If \code{type=coefficients,} the coefficients are returned; if
@@ -62,10 +65,9 @@
   }
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{
@@ -75,11 +77,11 @@ cv.coxpath, coxpath, plot.coxpath
 data(lung.data)
 attach(lung.data)
 fit <- coxpath(lung.data)
-pred.a <- predict(fit, x, s = seq(0, 1, length=10), mode =
-"norm.fraction")
+pred.a <- predict(fit, x, s = seq(0, 1, length=10),
+                  mode = "norm.fraction")
 library(survival)
-pred.b <- predict(fit, lung.data, s = 0.5, type = "coxph", mode =
-"lambda.fraction")
+pred.b <- predict(fit, lung.data, s = 0.5, type = "coxph",
+                  mode = "lambda.fraction")
 pred.s <- survfit(pred.b)
 plot(pred.s)
 detach(lung.data)

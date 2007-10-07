@@ -30,8 +30,8 @@
       
       call mistart( iprint, isumm, ispecs )  ! Initialize MINOS and open
 *     ------------------------------------------------------------------
-*     User workspace: 1 + 1 + 1  + 1  + 1 + 5 + (p+1)*nobs + nobs
-*                   nobs lam lam2 dist  k   b   x, y data    w 
+*     User workspace: 1 + 1 + 1  + 1  + 1 + 1 + 4 + (p+1)*nobs + nobs + nobs
+*                   nobs lam lam2 dist  k  prec b   x, y data    w      off
 *     ------------------------------------------------------------------
       call miopti( 'Workspace (user) ', lenz, 0, 0, inform )
       call miopti( 'LOG FREQUENCY ', 0, 0, 0, inform )
@@ -40,6 +40,7 @@
       call miopti( 'SUMMARY FREQUENCY ', 0, 0, 0, inform )
       call miopti( 'SUPERBASICS LIMIT ', n+30, 0, 0, inform )
       call miopti( 'PROBLEM NUMBER ', 1, 0, 0, inform )
+      call mioptr( 'FUNCTION PRECISION ', zsmall(6), 0, 0, inform )
 *     ------------------------------------------------------------------
 *     Now set parameters for moniss
 *     ------------------------------------------------------------------
@@ -124,8 +125,8 @@
       integer            nobs, k, p, method
       double precision   lam, lam2, dstr
 *     ------------------------------------------------------------------
-*     User workspace: 1 + 1 + 1  + 1  + 1 + 5 + (p+1)*nobs + nobs
-*                   nobs lam lam2 dist  k   b   x, y data    w 
+*     User workspace: 1 + 1 + 1  + 1  + 1 + 1 + 4 + (p+1)*nobs + nobs + nobs
+*                   nobs lam lam2 dist  k  prec b   x, y data    w      off
 *     ------------------------------------------------------------------
 
       mode = mode
@@ -162,7 +163,7 @@
       double precision   x(n), g(n), f, z(nwcore),
      &                   lam, lam2, dstr
 
-      integer            i, j, ii
+      integer            i, j, ii, ii1, ii2
       double precision   eta(nobs), mu(nobs), resid(nobs),
      &                   xi(nobs), y(nobs), wt(nobs),
      &                   loglik, ddot, norm1, norm2
@@ -172,12 +173,14 @@
 *     -------------------------------------------------------------
 
       ii = 10 
+      ii1 = 10 + p*nobs
+      ii2 = 10 + (p+2)*nobs
       do 200 i = 1, nobs
-         eta(i) = zero
+         eta(i) = z(ii2 + i)
          do 100 j = 1, p
             eta(i) = eta(i) + x(j) * z(ii + (j-1)*nobs + i)
  100     continue
-         y(i) = z(ii + p*nobs + i)
+         y(i) = z(ii1 + i)
  200  continue
       ii = 10 + (p+1)*nobs
       loglik = zero
@@ -235,42 +238,42 @@
 *             A summary of possible values follows:                          *
 *                                                                            *
 *             inform   Meaning                                               *
-*
-*                0     Optimal solution found.
-*                1     The problem is infeasible.
-*                2     The problem is unbounded (or badly scaled).
-*                3     Too many iterations.
-*                4     Apparent stall.  The solution has not changed
-*                      for a large number of iterations (e.g. 1000).
-*                5     The Superbasics limit is too small.
-*                6     Subroutine funobj or funcon requested termination
-*                      by returning mode < 0.
-*                7     Subroutine funobj seems to be giving incorrect
-*                      gradients.
-*                8     Subroutine funcon seems to be giving incorrect
-*                      gradients.
-*                9     The current point cannot be improved.
-*               10     Numerical error in trying to satisfy the linear
-*                      constraints (or the linearized nonlinear
-*                      constraints).  The basis is very ill-conditioned.
-*               11     Cannot find a superbasic to replace a basic
-*                      variable.
-*               12     Basis factorization requested twice in a row.
-*                      Should probably be treated as inform = 9.
-*               13     Near-optimal solution found.
-*                      Should probably be treated as inform = 9.
-*
-*               20     Not enough storage for the basis factorization.
-*               21     Error in basis package.
-*               22     The basis is singular after several attempts to
-*                      factorize it (and add slacks where necessary).
-*
-*               30     An OLD BASIS file had dimensions that did not
-*                      match the current problem.
-*               32     System error.  Wrong number of basic variables.
-*
-*               40     Fatal errors in the MPS file.
-*               41     Not enough storage to read the MPS file.
-*               42     Not enough storage to solve the problem.
-*
+*                                                                            *
+*                0     Optimal solution found.                               *
+*                1     The problem is infeasible.                            *
+*                2     The problem is unbounded (or badly scaled).           *
+*                3     Too many iterations.                                  *
+*                4     Apparent stall.  The solution has not changed         *
+*                      for a large number of iterations (e.g. 1000).         *
+*                5     The Superbasics limit is too small.                   *
+*                6     Subroutine funobj or funcon requested termination     *
+*                      by returning mode < 0.                                * 
+*                7     Subroutine funobj seems to be giving incorrect        *
+*                      gradients.                                            *
+*                8     Subroutine funcon seems to be giving incorrect        *
+*                      gradients.                                            *
+*                9     The current point cannot be improved.                 *
+*               10     Numerical error in trying to satisfy the linear       *
+*                      constraints (or the linearized nonlinear              *
+*                      constraints).  The basis is very ill-conditioned.     *
+*               11     Cannot find a superbasic to replace a basic           *
+*                      variable.                                             *
+*               12     Basis factorization requested twice in a row.         *
+*                      Should probably be treated as inform = 9.             *
+*               13     Near-optimal solution found.                          *
+*                      Should probably be treated as inform = 9.             *
+*                                                                            *
+*               20     Not enough storage for the basis factorization.       *
+*               21     Error in basis package.                               *
+*               22     The basis is singular after several attempts to       *
+*                      factorize it (and add slacks where necessary).        *
+*                                                                            *
+*               30     An OLD BASIS file had dimensions that did not         *
+*                      match the current problem.                            *
+*               32     System error.  Wrong number of basic variables.       *
+*                                                                            *
+*               40     Fatal errors in the MPS file.                         *
+*               41     Not enough storage to read the MPS file.              *
+*               42     Not enough storage to solve the problem.              *
+*                                                                            *
 ******************************************************************************

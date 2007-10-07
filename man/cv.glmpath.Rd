@@ -9,8 +9,9 @@
   prediction errors for \code{glmpath.}
 }
 \usage{
-  cv.glmpath(x, y, data, family = binomial, weight = rep(1, length(y)),
-             nfold = 10, fraction = seq(from=0, to=1, length=100),
+  cv.glmpath(x, y, data, family = binomial, weight = rep(1, n),
+             offset = rep(0, n), nfold = 10,
+             fraction = seq(from=0, to=1, length=100),
              type = c("loglik","response"), mode = c("norm","lambda"),
              plot.it = TRUE, se = TRUE, ...)
 }
@@ -36,13 +37,17 @@
   \item{weight}{
     an optional vector of weights for observations
   }
+  \item{offset}{
+    an optional vector of offset. If a column of \code{x} is used as
+    offset, the corresponding column must be excluded from \code{x.}
+  }
   \item{nfold}{
     number of folds to be used in cross-validation. Default is
     \code{nfold=10.}
   }
   \item{fraction}{
-    fraction of the L1 norm or log(\eqn{\lambda}) with respect to their
-    maximum values at which CV values are computed. Default is
+    the fraction of L1 norm or log(\eqn{\lambda}) with respect to their
+    maximum values at which the CV errors are computed. Default is
     \code{seq(0,1,length=100).}
   }
   \item{type}{
@@ -51,25 +56,24 @@
     are computed. Default is \code{loglik.}
   }
   \item{mode}{
-    If \code{mode=norm,} cross-validation is done at certain values of
-    L1 norm. If \code{mode=lambda,} cross-validation is done at certain
+    If \code{mode=norm,} cross-validation is run at certain values of
+    L1 norm. If \code{mode=lambda,} cross-validation is run at certain
     values of log(\eqn{\lambda}). Default is \code{norm.}
   }
   \item{plot.it}{
-    If \code{TRUE,} the CV curve is plotted.
+    If \code{TRUE,} CV curve is plotted.
   }
   \item{se}{
-    If \code{TRUE,} the standard errors are plotted.
+    If \code{TRUE,} standard errors are plotted.
   }
   \item{...}{
     other options for glmpath
   }
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{

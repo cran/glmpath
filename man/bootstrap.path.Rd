@@ -24,8 +24,8 @@
   \item{data}{
     a list of data components. If \code{path=glmpath,} \code{data}
     consists of \code{x:} a matrix of features and \code{y:}
-    response. \code{data} is not needed if above \code{x} and \code{y}
-    are input separately. If \code{path=coxpath,} \code{data} must be
+    response. \code{data} is not needed if \code{x} and \code{y} are
+    input separately. If \code{path=coxpath,} \code{data} must be
     provided, including \code{x:} a matrix of features, \code{time:} the
     survival time, and \code{status:} censor status with 1 if died and 0
     if censored.
@@ -62,20 +62,19 @@
 \details{
   Fitting \code{glmpath} or \code{coxpath} gives a series of solution
   sets with a varying size of the active set. Once we select an
-  appropriate value of the regularization parameter, and, thus a set of
-  coefficients, we may then validate the chosen coefficients through a
+  appropriate value of the regularization parameter, and thus a set of
+  coefficients, we may then validate the chosen coefficients through
   bootstrap analysis. \code{plot.bootstrap} summarizes the bootstrap
   results by generating the histograms or the pair scatter plots of the
-  bootstrap coefficients. 
+  bootstrap coefficients.
 }
 \references{
   Bradley Efron and Robert Tibshirani (1993) \emph{An Introduction to
     the Bootstrap} CHAPMAN & HALL/CRC, Boca Raton.
 
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{

@@ -1,7 +1,7 @@
 \name{plot.glmpath}
 \alias{plot.glmpath}
 \title{
-  Plots the entire regularization path computed from glmpath
+  Plots the regularization path computed from glmpath
 }
 \description{
   This function takes a \code{glmpath} object and visualizes the
@@ -11,9 +11,10 @@
 }
 \usage{
   plot.glmpath(x, xvar = c("norm", "lambda", "step"),
-               type = c("coefficients", "aic", "bic"), xlimit = NULL,
-               predictor = FALSE, omit.zero = TRUE, breaks = TRUE,
-               mar = NULL, eps = .Machine$double.eps, main = NULL, ...)
+               type = c("coefficients", "aic", "bic"),
+               plot.all.steps = FALSE, xlimit = NULL, predictor = FALSE,
+               omit.zero = TRUE, breaks = TRUE, mar = NULL,
+               eps = .Machine$double.eps, main = NULL, ...)
 }
 \arguments{
   \item{x}{
@@ -28,6 +29,11 @@
   \item{type}{
     type of the plot, or the vertical axis. Default is
     \code{coefficients.}
+  }
+  \item{plot.all.steps}{
+    If \code{TRUE,} all the steps taken along the path are marked on the
+    plot. If \code{FALSE,} which is the default, only the steps at which
+    the active set changed are shown on the plot.
   }
   \item{xlimit}{
     When the user wants to visualize a (beginning) sub-part of the plot,
@@ -61,10 +67,9 @@
   }
 }
 \references{
-  Mee Young Park and Trevor Hastie (2006) L1 Regularization Path
-  Algorithm for Generalized Linear Models - available at the authors'
-  websites, \url{http://stat.stanford.edu/~mypark} or
-  \url{http://stat.stanford.edu/~hastie/pub.htm}.
+  Mee Young Park and Trevor Hastie (2007) L1 regularization path
+  algorithm for generalized linear models. \emph{J. R. Statist. Soc.} B,
+  69, 659-677.
 }
 \author{Mee Young Park and Trevor Hastie}
 \seealso{
