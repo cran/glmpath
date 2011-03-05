@@ -1,18 +1,18 @@
 \name{bootstrap.path}
 \alias{bootstrap.path}
 \title{
-  Generates a set of bootstrap coefficients for either glmpath or
-  coxpath
+  Generates a set of bootstrap coefficients for glmpath or coxpath
 }
 \description{
-  This function generates a set of bootstrap coefficients for either
+  This function generates a set of bootstrap coefficients for
   \code{glmpath} or \code{coxpath.} For each bootstrap run, the
   regularization parameter may be determined based on either \code{aic}
   or \code{bic.}
   }
 \usage{
-  bootstrap.path(x, y, data, B, index=NULL, path=c("glmpath","coxpath"),
-                 method=c("aic","bic"), trace=FALSE, ...)
+  bootstrap.path(x, y, data, B, index = NULL,
+                 path = c("glmpath", "coxpath"),
+                 method = c("aic", "bic"), trace = FALSE, ...)
 }
 \arguments{
   \item{x}{

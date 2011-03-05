@@ -11,8 +11,8 @@
 \usage{
   cv.glmpath(x, y, data, family = binomial, weight = rep(1, n),
              offset = rep(0, n), nfold = 10,
-             fraction = seq(from=0, to=1, length=100),
-             type = c("loglik","response"), mode = c("norm","lambda"),
+             fraction = seq(0, 1, length = 100),
+             type = c("loglik", "response"), mode = c("norm", "lambda"),
              plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{

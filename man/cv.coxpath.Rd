@@ -9,7 +9,7 @@
 }
 \usage{
   cv.coxpath(data, method = c("breslow", "efron"), nfold = 5,
-             fraction = seq(from=0, to=1, length=100),
+             fraction = seq(0, 1, length = 100),
              mode = c("norm","lambda"), plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{

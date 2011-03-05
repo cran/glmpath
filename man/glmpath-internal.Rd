@@ -13,23 +13,23 @@
 \alias{step.length.cox}
 \usage{
 corrector1(x, y, family, weight, offset, active, tmpa, force.active,
-  lambda, lambda2, b0, a0, bshoot.threshold, relax.lambda, trace,
-  function.precision, no.iter = FALSE, eps = .Machine$double.eps)
-corrector.cox(x, y, d, rslist, wlist, rept, method, active, tmpa,
-  force.active, lambda, lambda2, b0, a0, bshoot.threshold, relax.lambda,
-  trace, function.precision, eps = .Machine$double.eps)
+  lambda, lambda2, b0, bshoot.threshold, relax.lambda, trace,
+  no.iter = FALSE, eps = .Machine$double.eps)
+corrector.cox(x, d, rslist, wlist, rept, method, active, tmpa,
+  force.active, lambda, lambda2, b0, bshoot.threshold, relax.lambda,
+  trace, eps = .Machine$double.eps)
 logplik(x, time, status, b, method = c("breslow", "efron"),
-  return.all=FALSE)
+  return.all = FALSE)
 predictor1(b, step)
 predictor.cox(b, step)
 print.coxpath(x, ...)
 print.glmpath(x, ...)
 step.length(corrector, lambda2, min.lambda, max.arclength,
-  frac.arclength, add.newvars, backshoot, h0=NULL,
-  eps=.Machine$double.eps)
+  frac.arclength, add.newvars, backshoot, h0 = NULL,
+  eps = .Machine$double.eps)
 step.length.cox(corrector, lambda2, x, d, rslist, wlist, min.lambda,
   max.arclength, frac.arclength, add.newvars, backshoot, approx.Gram,
-  h0=NULL, eps=.Machine$double.eps)
+  h0 = NULL, eps = .Machine$double.eps)
 }
 \description{
   Internal glmpath functions

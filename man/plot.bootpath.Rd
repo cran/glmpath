@@ -10,7 +10,7 @@
   scatter plots of the bootstrap coefficients. 
 }
 \usage{
-  plot.bootpath(x, type=c("histogram","pairplot"),
+  plot.bootpath(x, type = c("histogram", "pairplot"),
                 mfrow = NULL, mar = NULL, ...)
 }
 \arguments{

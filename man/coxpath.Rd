@@ -11,13 +11,12 @@
 }
 \usage{
   coxpath(data, nopenalty.subset = NULL, method = c("breslow", "efron"),
-          lambda2 = 1e-5, max.steps = 10*min(n, m), max.norm = 100*m,
+          lambda2 = 1e-5, max.steps = 10 * min(n, m), max.norm = 100 * m,
           min.lambda = (if (m >= n) 1e-3 else 0), max.vars = Inf,
           max.arclength = Inf, frac.arclength = 1, add.newvars = 1,
           bshoot.threshold = 0.1, relax.lambda = 1e-7,
           approx.Gram = FALSE, standardize = TRUE,
-          function.precision = 3e-13, eps = .Machine$double.eps,
-          trace = FALSE)
+          eps = .Machine$double.eps, trace = FALSE)
 }
 \arguments{
   \item{data}{
@@ -104,11 +103,6 @@
   \item{standardize}{
     If \code{TRUE,} predictors are standardized to have a unit variance.
   }
-  \item{function.precision}{
-    \code{function.precision} parameter used in the internal
-    solver. Default is \code{3e-13.} The algorithm is faster, but less
-    accurate with relaxed, larger \code{function precision.}
-  }
   \item{eps}{
     an effective zero
   }
@@ -187,10 +181,6 @@
   on the previous estimate. The coefficients are estimated with
   no error at the knots, and the values are connected, thereby making
   the paths piecewise linear.
-
-  We thank Michael Saunders of SOL, Stanford University for providing
-  the solver used for the convex optimization in corrector steps of
-  coxpath.
 }
 \references{
   Mee Young Park and Trevor Hastie (2007) L1 regularization path
