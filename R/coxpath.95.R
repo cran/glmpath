@@ -159,7 +159,6 @@ corrector.cox <- function(x, d, rslist, wlist, rept, method, active, tmpa,
     df <- length(active) - length(newactive)
     backshoot <- ifelse(any(abs(b0[newactive]) > bshoot.threshold),
                         TRUE, FALSE)
-    
     list(eta = eta, wsum = wsum, b = b0, lp = lp, active = active,
          force.active = force.active, newactive = newactive, newa = newa,
          inactive = inactive, corr = corr, lambda = lambda, df = df,
@@ -209,7 +208,7 @@ coxpath <- function(data, nopenalty.subset = NULL,
           wlist[[i]][tie] <- wlist[[i]][tie] - (di - rept[complete[i]]) / di
         }
       }
-    }  
+    }
     if (frac.arclength > 1 || frac.arclength <= 0) {
       frac.arclength <- 1
       cat('frac.arclength should be in (0,1]. frac.arclength is set to 1.\n')
@@ -219,7 +218,7 @@ coxpath <- function(data, nopenalty.subset = NULL,
       cat(paste('frac.arclength<1 can be used only if max.arclength=Inf.',
                 'frac.arclength is set to 1.\n'))
     }
-    n.repeat <- n.repeat1 <- ceiling(1 / frac.arclength)    
+    n.repeat <- n.repeat1 <- ceiling(1 / frac.arclength)
     one <- rep(1, n)
     meanx <- drop(one %*% x) / n
     x <- scale(x, meanx, FALSE)
@@ -260,13 +259,13 @@ coxpath <- function(data, nopenalty.subset = NULL,
     lp[k] <- corrector$lp
     new.A[k] <- TRUE
     actions[[k]] <- active <- corrector$active
-    names(actions[[k]]) <- xnames[active]    
+    names(actions[[k]]) <- xnames[active]
     if (trace) {
       cat(paste('Lambda=', lambda, 'lets the first factor in.\nStep', k, ':'))
       if (is.null(force.active))
         cat(paste('\t', xnames[active],'added'))
       else cat(paste('\t', xnames[active[-force.active]], 'added'))
-    }    
+    }
     if (max.steps <= 1) {
       stop('Increase max.steps.')
     }
@@ -325,7 +324,7 @@ coxpath <- function(data, nopenalty.subset = NULL,
         corrector <- corrector.cox(x, status, rslist, wlist, rept, mthd,
                                    active, tmpa, force.active, lambda, lambda2,
                                    b, bshoot.threshold, relax.lambda, trace)
-        newa <- corrector$newa 
+        newa <- corrector$newa
       }
       newaction <- c(corrector$newactive, -corrector$inactive)
       if (length(newaction) > 0 && length(corrector$active) <= n) {
@@ -357,7 +356,7 @@ coxpath <- function(data, nopenalty.subset = NULL,
         n.repeat1 <- max(n.repeat1 - 1, 1)
       }
       if (!backshoot) {
-        bmat.corr[k, ] <- b 
+        bmat.corr[k, ] <- b
         cmat[k, ] <- corrector$corr
         lp[k] <- corrector$lp
         df[k] <- corrector$df
@@ -384,7 +383,7 @@ coxpath <- function(data, nopenalty.subset = NULL,
     }
     bmat.pred <- bmat.pred[1:k, ]
     bmat.corr <- bmat.corr[1:k, ]
-    cmat <- cmat[1:k, ]
+    cmat <- cmat[1:k, ,drop=F]
     bmat.pred <- scale(bmat.pred, FALSE, sdx)
     bmat.corr <- scale(bmat.corr, FALSE, sdx)
     dimnames(bmat.pred) <- dimnames(bmat.corr) <- dimnames(cmat) <-
@@ -434,7 +433,7 @@ plot.coxpath <- function(x, xvar = c('norm', 'lambda', 'step'),
     }
     m <- ncol(coef.pred)
     k <- nrow(coef.pred)
-    s <- switch(xvar, 
+    s <- switch(xvar,
       norm = if (is.null(object$nopenalty.subset)) apply(abs(coef.corr), 1, sum)
        else (apply(abs(coef.corr[, -object$nopenalty.subset, drop = FALSE]),
                    1, sum)),
@@ -520,17 +519,17 @@ predict.coxpath <- function(object, data, s,
       }
     }
     sb <- switch(mode, step = {
-      if (any(s < 1) || any(s > k)) 
+      if (any(s < 1) || any(s > k))
         stop('Argument s out of range')
       steps
     }, norm.fraction = {
-      if (any(s > 1) || any(s < 0)) 
+      if (any(s > 1) || any(s < 0))
         stop('Argument s out of range')
       bnorm <- apply(abs(std.b), 1, sum)
       bnorm / bnorm[k]
     }, norm = {
       bnorm <- apply(abs(std.b), 1, sum)
-      if (any(s > bnorm[k]) || any(s < bnorm[1])) 
+      if (any(s > bnorm[k]) || any(s < bnorm[1]))
         stop('Argument s out of range')
       bnorm
     }, lambda.fraction = {
@@ -551,14 +550,14 @@ predict.coxpath <- function(object, data, s,
     usb <- unique(sb)
     useq <- match(usb, sb)
     sb <- sb[useq]
-    b <- b[useq, ]
+    b <- b[useq, ,drop=F]
     coord <- approx(sb, seq(sb), sfrac)$y
     left <- floor(coord)
     right <- ceiling(coord)
-    newb <- (((sb[right] - sfrac) * b[left, , drop = FALSE] + 
+    newb <- (((sb[right] - sfrac) * b[left, , drop = FALSE] +
               (sfrac - sb[left]) * b[right, , drop = FALSE]) /
              (sb[right] - sb[left]))
-    newb[left == right, ] <- b[left[left == right], ]    
+    newb[left == right, ] <- b[left[left == right], ]
     coef <- newb
     if (type == 'coefficients') {
       fit <- coef
@@ -567,10 +566,10 @@ predict.coxpath <- function(object, data, s,
       fit <- logplik(data$x, data$time, data$status, t(coef), object$method)
       names(fit) <- s
     } else if (type == 'lp' || type == 'risk') {
-      b0 <- coef %*% object$meanx 
+      b0 <- coef %*% object$meanx
       fit <- scale(data$x %*% t(coef), b0, FALSE)
       if (type == 'risk') fit <- exp(fit)
-      dimnames(fit) <- list(seq(nrow(data$x)), s)      
+      dimnames(fit) <- list(seq(nrow(data$x)), s)
     } else {
       coef <- drop(coef)
       active <- abs(coef) > eps
@@ -601,7 +600,7 @@ predict.coxpath <- function(object, data, s,
       fit$method <- object$method
       fit$assign <- seq(a)
       fit$wald.test <- sum(coef*(info %*% coef))
-    }    
+    }
     attr(fit, 's') <- s
     attr(fit, 'fraction') <- sfrac
     attr(fit, 'mode') <- mode

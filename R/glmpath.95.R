@@ -122,13 +122,13 @@ glmpath <- function(x, y, data, nopenalty.subset = NULL, family = binomial,
                     trace = FALSE)
   {
     call <- match.call()
-    if (is.character(family)) 
+    if (is.character(family))
         family <- get(family, mode = 'function', envir = parent.frame())
-    if (is.function(family)) 
+    if (is.function(family))
         family <- family()
     else if (family$family == 'gaussian') family <- gaussian()
     else if (family$family == 'binomial') family <- binomial()
-    else if (family$family == 'poisson') family <- poisson()    
+    else if (family$family == 'poisson') family <- poisson()
     if (is.null(family$family)) {
         print(family)
         stop("'family' not recognized")
@@ -138,7 +138,7 @@ glmpath <- function(x, y, data, nopenalty.subset = NULL, family = binomial,
       y <- data$y
     }
     n <- nrow(x)
-    m <- ncol(x)    
+    m <- ncol(x)
     no.iter <- FALSE
     if (family$family == 'gaussian' && family$link == 'identity')
       no.iter <- TRUE
@@ -265,7 +265,7 @@ glmpath <- function(x, y, data, nopenalty.subset = NULL, family = binomial,
         corrector <- corrector1(x, y, family, weight, offset, active, tmpa,
                                 force.active, lambda, lambda2, b,
                                 bshoot.threshold, relax.lambda, trace, no.iter)
-        newa <- corrector$newa 
+        newa <- corrector$newa
       }
       newaction <- c(corrector$newactive, -corrector$inactive)
       if (length(newaction) > 0 && length(corrector$active) <= n) {
@@ -296,7 +296,7 @@ glmpath <- function(x, y, data, nopenalty.subset = NULL, family = binomial,
         n.repeat1 <- max(n.repeat1 - 1, 1)
       }
       if (!backshoot) {
-        bmat.corr[k, ] <- b 
+        bmat.corr[k, ] <- b
         cmat[k, ] <- corrector$corr
         df[k] <- corrector$df
         dev[k] <- corrector$dev
@@ -482,17 +482,17 @@ predict.glmpath <- function(object, newx, newy, s,
       }
     }
     sb <- switch(mode, step = {
-      if (any(s < 1) || any(s > k)) 
+      if (any(s < 1) || any(s > k))
         stop('Argument s out of range')
       steps
     }, norm.fraction = {
-      if (any(s > 1) || any(s < 0)) 
+      if (any(s > 1) || any(s < 0))
         stop('Argument s out of range')
       bnorm <- apply(abs(std.b), 1, sum)
       bnorm / bnorm[k]
     }, norm = {
       bnorm <- apply(abs(std.b), 1, sum)
-      if (any(s > bnorm[k]) || any(s < bnorm[1])) 
+      if (any(s > bnorm[k]) || any(s < bnorm[1]))
         stop('Argument s out of range')
       bnorm
     }, lambda.fraction = {
@@ -517,10 +517,10 @@ predict.glmpath <- function(object, newx, newy, s,
     coord <- approx(sb, seq(sb), sfrac)$y
     left <- floor(coord)
     right <- ceiling(coord)
-    newb <- (((sb[right] - sfrac) * b[left, , drop = FALSE] + 
+    newb <- (((sb[right] - sfrac) * b[left, , drop = FALSE] +
               (sfrac - sb[left]) * b[right, , drop = FALSE]) /
              (sb[right] - sb[left]))
-    newb[left == right, ] <- b[left[left == right], ]    
+    newb[left == right, ] <- b[left[left == right], ]
     if (type != 'coefficients') {
       if (missing(offset)) offset <- rep(0, nrow(newx))
       fit <- cbind(1, newx) %*% t(newb) + offset
@@ -556,9 +556,9 @@ cv.glmpath <- function(x, y, data, family = binomial, weight = rep(1, n),
   {
     type <- match.arg(type)
     mode <- match.arg(mode)
-    if (is.character(family)) 
+    if (is.character(family))
         family <- get(family, mode = 'function', envir = parent.frame())
-    if (is.function(family)) 
+    if (is.function(family))
         family <- family()
     else if (family$family == 'gaussian') family <- gaussian()
     else if (family$family == 'binomial') family <- binomial()
@@ -566,7 +566,7 @@ cv.glmpath <- function(x, y, data, family = binomial, weight = rep(1, n),
     if (!missing(data)) {
       x <- data$x
       y <- data$y
-    }    
+    }
     if (family$family == 'binomial') {
       uy <- unique(y)
       if (all(uy == c(1, -1)) | all(uy == c(-1, 1))) {
@@ -712,7 +712,7 @@ plot.bootpath <- function(x, type = c('histogram', 'pairplot'), mfrow = NULL,
       bpanel <- function(x, y) {
         abline(v = 0, h = 0, lwd = 2, col = 3)
         points(x, y)
-        points(x[1], y[1], pch = 16, col = 2) 
+        points(x[1], y[1], pch = 16, col = 2)
       }
       pairs(rbind(beta0, x), panel = bpanel, ...)
     }

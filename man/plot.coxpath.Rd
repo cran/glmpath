@@ -10,11 +10,11 @@
   \code{coefficients,} \code{aic} or \code{bic.}
 }
 \usage{
-  plot.coxpath(x, xvar = c("norm", "lambda", "step"),
-               type = c("coefficients", "aic", "bic"),
-               plot.all.steps = FALSE, xlimit = NULL, predictor = FALSE,
-               omit.zero = TRUE, breaks = TRUE, mar = NULL, main = NULL,
-               eps = .Machine$double.eps, ...)
+  \method{plot}{coxpath}(x, xvar = c("norm", "lambda", "step"),
+     type = c("coefficients", "aic", "bic"),
+     plot.all.steps = FALSE, xlimit = NULL, predictor = FALSE,
+     omit.zero = TRUE, breaks = TRUE, mar = NULL, main = NULL,
+     eps = .Machine$double.eps, ...)
 }
 \arguments{
   \item{x}{

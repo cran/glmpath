@@ -22,8 +22,8 @@ logplik(x, time, status, b, method = c("breslow", "efron"),
   return.all = FALSE)
 predictor1(b, step)
 predictor.cox(b, step)
-print.coxpath(x, ...)
-print.glmpath(x, ...)
+\method{print}{coxpath}(x, ...)
+\method{print}{glmpath}(x, ...)
 step.length(corrector, lambda2, min.lambda, max.arclength,
   frac.arclength, add.newvars, backshoot, h0 = NULL,
   eps = .Machine$double.eps)

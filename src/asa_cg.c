@@ -148,8 +148,8 @@ int asa_cg /*  return:
     else                work = Work ;
     if ( work == NULL )
     {
-        printf ("Insufficient memory for specified problem dimension %e\n",
-                 (double) n) ;
+      //printf ("Insufficient memory for specified problem dimension %e\n",
+      //(double) n) ;
         status = 10 ;
         return (status) ;
     }
@@ -230,13 +230,13 @@ int asa_cg /*  return:
     Com.ginorm = ginorm ;
     Com.nfree = nfree ;
 
-    if ( asaParm->PrintLevel >= 1 )
-    {
-        printf ("\ninitial f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n",
-                 Com.f, pgnorm, ginorm) ;
-        printf ("            nfree = %i xnorm = %14.6e gp = %i\n",
-                 nfree, xnorm, gp) ;
-    }
+    //if ( asaParm->PrintLevel >= 1 )
+    //{
+      //printf ("\ninitial f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n",
+      //Com.f, pgnorm, ginorm) ;
+      //printf ("            nfree = %i xnorm = %14.6e gp = %i\n",
+      //nfree, xnorm, gp) ;
+    //}
 
     if ( (ginorm < Com.tau1*pgnorm) || gp || asaParm->GradProjOnly )
     {
@@ -252,13 +252,13 @@ int asa_cg /*  return:
     }
 
     Grad_proj:
-    if ( asaParm->PrintLevel >= 1 ) printf ("\nGradProj:\n") ;
+    //if ( asaParm->PrintLevel >= 1 ) printf ("\nGradProj:\n") ;
     Com.DimReduce = FALSE ;
     status = asa_grad_proj(&Com) ;
-    if ( asaParm->PrintLevel >= 1 )
-    {
-        printf ("exit Grad_proj\n") ;
-    }
+    //if ( asaParm->PrintLevel >= 1 )
+    //{
+      //printf ("exit Grad_proj\n") ;
+    //}
     if ( Com.cbbiter >= cbb_totit ) status = 11 ;
     if ( status >= 0 ) goto Exit ;
 
@@ -284,13 +284,13 @@ int asa_cg /*  return:
     }
     else Com.DimReduce = FALSE ;
 
-    if ( asaParm->PrintLevel >= 1 ) printf ("\nCG:\n") ;
+    //if ( asaParm->PrintLevel >= 1 ) printf ("\nCG:\n") ;
     status = asa_descent (&Com) ;
 
-    if ( asaParm->PrintLevel >= 1 )
-    {
-        printf ("exit the CG subroutine\n") ;
-    }
+    //if ( asaParm->PrintLevel >= 1 )
+    //{
+    //printf ("exit the CG subroutine\n") ;
+    //}
     if ( Com.DimReduce ) asa_expand_all (&Com) ;
     if ( Com.cgiter >= cg_totit ) status = 2 ;
 
@@ -325,7 +325,7 @@ int asa_cg /*  return:
         if ( ginorm >= Com.tau1*Com.pgnorm ) goto CG_descent ;
         else
         {
-           if ( asaParm->PrintLevel >= 1 ) printf ("ginorm < tau1* pgnorm\n") ;
+          //if ( asaParm->PrintLevel >= 1 ) printf ("ginorm < tau1* pgnorm\n") ;
            Com.alpha = asa_init_bbstep (&Com) ;
            goto Grad_proj ;
         }
@@ -358,8 +358,8 @@ int asa_cg /*  return:
             if ( ginorm >= Com.tau1*Com.pgnorm ) goto CG_descent ;
             else
             {
-               if ( asaParm->PrintLevel >= 1 )
-                   printf ("ginorm < tau1* pgnorm\n" ) ;
+              //if ( asaParm->PrintLevel >= 1 )
+              //     printf ("ginorm < tau1* pgnorm\n" ) ;
                Com.alpha = asa_init_bbstep (&Com) ;
                goto Grad_proj ;
             }
@@ -380,134 +380,134 @@ int asa_cg /*  return:
         const char mess4 [] = "   - your gradient routine has an error" ;
         const char mess5 [] = "   - the parameter epsilon in "
                               "asa_descent_c.parm is too small" ;
-        printf ("\nFinal convergence status = %d\n", status);
-        if ( status == -2 )
-        {
-            printf ("Function value became nan at cg iteration %10.0e\n",
-                     (double) Com.cgiter) ;
-        }
-        else if ( status == -1 )
-        {
-            printf ("Function value of starting point is nan at "
-                     "cg iteration %10.0f\n", (double) Com.cgiter) ;
-        }
-        else if ( status == 0 )
-        {
-            printf ("Convergence tolerance for gradient satisfied\n") ;
-        }
-        else if ( status == 1 )
-        {
-            printf ("Terminating in cg since change in function value "
-                    "<= feps*|f|\n") ;
-        }
-        else if ( status == 2 )
-        {
-            printf ("Number of iterations exceed specified limits "
-                    "for cg routine\n") ;
-            printf ("Iterations: %10.0f maxit: %10.0f totit: %10.0f\n",
-                    (double) Com.cgiter, (double) Com.cgmaxit,
-                    (double) cg_totit) ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-        }
-        else if ( status == 3 )
-        {
-            printf ("Slope always negative in cg line search\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("   - your cost function has an error\n") ;
-            printf ("%s\n", mess4) ;
-        }
-        else if ( status == 4 )
-        {
-            printf ("Line search fails in cg, too many secant steps\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-        }
-        else if ( status == 5 )
-        {
-            printf ("Search direction not a descent direction in cg\n") ;
-        }
-        else if ( status == 6 ) /* line search fails */
-        {
-            printf ("Line search fails in cg iteration\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-            printf ("%s\n", mess4) ;
-            printf ("%s\n", mess5) ;
-        }
-        else if ( status == 7 ) /* line search fails */
-        {
-            printf ("Line search fails in cg iteration\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-        }
-        else if ( status == 8 ) /* line search fails */
-        {
-            printf ("Line search fails in cg iteration\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-            printf ("%s\n", mess4) ;
-            printf ("%s\n", mess5) ;
-        }
-        else if ( status == 9 )
-        {
-            printf ("Debugger is on, function value does not improve in cg\n") ;
-            printf ("new value: %25.16e old value: %25.16e\n",
-                Com.f_debug, Com.f0) ;
-        }
-        else if ( status == 10 )
-        {
-            printf ("Insufficient memory\n") ;
-        }
-        else if ( status == 11 )
-        {
-            printf ("Number of iterations or function evaluation exceed\n"
-                          "specified limits for cbb routine\n") ;
-            printf ("Iterations: %i maxit: %i totit: %i\n",
-                     Com.cbbiter, Com.pgmaxit, cbb_totit) ;
-            printf ("Total function evaluations: %i maxfunc: %i\n",
-                     Com.nf, Com.pgmaxfunc);
-        }
-        if ( status == 12 ) /* line search fails in cbb iteration */
-        {
-            printf ("Line search fails in cbb iteration\n") ;
-            printf ("%s\n", mess1) ;
-            printf ("%s %e\n", mess2, Com.tol) ;
-            printf ("%s\n", mess4) ;
-        }
+        //printf ("\nFinal convergence status = %d\n", status);
+        //if ( status == -2 )
+        //{
+          //printf ("Function value became nan at cg iteration %10.0e\n",
+          //           (double) Com.cgiter) ;
+        //}
+        //else if ( status == -1 )
+        //{
+        //printf ("Function value of starting point is nan at "
+        //"cg iteration %10.0f\n", (double) Com.cgiter) ;
+        //}
+        //else if ( status == 0 )
+        //{
+        //    printf ("Convergence tolerance for gradient satisfied\n") ;
+        //}
+        //else if ( status == 1 )
+        //{
+        //    printf ("Terminating in cg since change in function value "
+        //            "<= feps*|f|\n") ;
+        //}
+        //else if ( status == 2 )
+        //{
+        //    printf ("Number of iterations exceed specified limits "
+        //            "for cg routine\n") ;
+        //    printf ("Iterations: %10.0f maxit: %10.0f totit: %10.0f\n",
+        //            (double) Com.cgiter, (double) Com.cgmaxit,
+        //            (double) cg_totit) ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //}
+        //else if ( status == 3 )
+        //{
+        //    printf ("Slope always negative in cg line search\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("   - your cost function has an error\n") ;
+        //    printf ("%s\n", mess4) ;
+        //}
+        //else if ( status == 4 )
+        //{
+        //    printf ("Line search fails in cg, too many secant steps\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //}
+        //else if ( status == 5 )
+        //{
+        //    printf ("Search direction not a descent direction in cg\n") ;
+        //}
+        //else if ( status == 6 ) /* line search fails */
+            //{
+        //    printf ("Line search fails in cg iteration\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //    printf ("%s\n", mess4) ;
+        //    printf ("%s\n", mess5) ;
+        //}
+        //else if ( status == 7 ) /* line search fails */
+            //{
+        //    printf ("Line search fails in cg iteration\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //}
+        //else if ( status == 8 ) /* line search fails */
+        //{
+        //    printf ("Line search fails in cg iteration\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //    printf ("%s\n", mess4) ;
+        //    printf ("%s\n", mess5) ;
+        //}
+        //else if ( status == 9 )
+        //{
+        //    printf ("Debugger is on, function value does not improve in cg\n") ;
+        //printf ("new value: %25.16e old value: %25.16e\n",
+        //        Com.f_debug, Com.f0) ;
+        //}
+        //else if ( status == 10 )
+        //{
+        //    printf ("Insufficient memory\n") ;
+        //}
+        //else if ( status == 11 )
+        //{
+        //    printf ("Number of iterations or function evaluation exceed\n"
+        //                  "specified limits for cbb routine\n") ;
+        //    printf ("Iterations: %i maxit: %i totit: %i\n",
+        //             Com.cbbiter, Com.pgmaxit, cbb_totit) ;
+        //    printf ("Total function evaluations: %i maxfunc: %i\n",
+        //             Com.nf, Com.pgmaxfunc);
+        //}
+        //if ( status == 12 ) /* line search fails in cbb iteration */
+            //{
+        //    printf ("Line search fails in cbb iteration\n") ;
+        //    printf ("%s\n", mess1) ;
+        //    printf ("%s %e\n", mess2, Com.tol) ;
+        //    printf ("%s\n", mess4) ;
+        //}
 
-        if ( status == 13 )
-        {
-            printf ("Search direction not descent direction in "
-                    "asa_grad_proj\n") ;
-            printf ("directional derivative: %e\n", Com.gtd) ;
-        }
-        if ( status == 14 )
-        {
-             printf ("At cbb iteration %i function value became nan\n",
-                      Com.cbbiter) ;
-        }
+        //if ( status == 13 )
+        //{
+        //    printf ("Search direction not descent direction in "
+        //            "asa_grad_proj\n") ;
+        //    printf ("directional derivative: %e\n", Com.gtd) ;
+        //}
+        //if ( status == 14 )
+        //{
+        //     printf ("At cbb iteration %i function value became nan\n",
+        //              Com.cbbiter) ;
+        //}
 
-        printf ("projected gradient max norm: %13.6e\n", Com.pgnorm) ;
-        printf ("function value:              %13.6e\n", Com.f) ;
-        printf ("\nTotal cg  iterations:           %10.0f\n",
-                (double) Com.cgiter) ;
-        printf ("Total cg  function evaluations: %10.0f\n",
-                (double) Com.cgfunc) ;
-        printf ("Total cg  gradient evaluations: %10.0f\n",
-                (double) Com.cggrad) ;
-        printf ("Total cbb iterations:           %10.0f\n",
-                (double) Com.cbbiter) ;
-        printf ("Total cbb function evaluations: %10.0f\n",
-                (double) Com.cbbfunc) ;
-        printf ("Total cbb gradient evaluations: %10.0f\n",
-                    (double) Com.cbbgrad) ;
-        printf ("------------------------------------------\n") ;
-        printf ("Total function evaluations:     %10.0f\n",
-                (double) Com.nf) ;
-        printf ("Total gradient evaluations:     %10.0f\n",
-                (double) Com.ng) ;
-        printf ("==========================================\n\n") ;
+        //printf ("projected gradient max norm: %13.6e\n", Com.pgnorm) ;
+        //printf ("function value:              %13.6e\n", Com.f) ;
+        //printf ("\nTotal cg  iterations:           %10.0f\n",
+        //        (double) Com.cgiter) ;
+        //printf ("Total cg  function evaluations: %10.0f\n",
+        //        (double) Com.cgfunc) ;
+        //printf ("Total cg  gradient evaluations: %10.0f\n",
+        //        (double) Com.cggrad) ;
+        //printf ("Total cbb iterations:           %10.0f\n",
+        //        (double) Com.cbbiter) ;
+        //printf ("Total cbb function evaluations: %10.0f\n",
+        //        (double) Com.cbbfunc) ;
+        //printf ("Total cbb gradient evaluations: %10.0f\n",
+        //            (double) Com.cbbgrad) ;
+        //printf ("------------------------------------------\n") ;
+        //printf ("Total function evaluations:     %10.0f\n",
+        //        (double) Com.nf) ;
+        //printf ("Total gradient evaluations:     %10.0f\n",
+        //        (double) Com.ng) ;
+        //printf ("==========================================\n\n") ;
     }
     free (ifree) ;
     if ( Work == NULL ) free (work) ;
@@ -838,10 +838,10 @@ int asa_descent /*  return:
     Parm = Com->cgParm ;
     asaParm = Com->asaParm ;
 
-    if ( Parm->PrintLevel >= 1 )
-    {
-        printf ("Dimension in CG, nfree = %i\n", nfree) ;
-    }
+    //if ( Parm->PrintLevel >= 1 )
+    //{
+    //    printf ("Dimension in CG, nfree = %i\n", nfree) ;
+    //}
 
     /* the conjugate gradient algorithm is restarted every nrestart iteration */
     nrestart = (INT) (((double) nfree)*Parm->restart_fac) ;
@@ -905,11 +905,11 @@ int asa_descent /*  return:
         goto Exit ;
     }
 
-    if ( Parm->PrintLevel >= 2 )
-    {
-        printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
-          (int) 0, f, pgnorm, ginorm) ;
-    }
+    //if ( Parm->PrintLevel >= 2 )
+    //{
+    //    printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
+    //      (int) 0, f, pgnorm, ginorm) ;
+    //}
 
     dphi0 = -gnorm2 ;
     delta2 = 2*Parm->delta - ONE ;
@@ -979,17 +979,17 @@ int asa_descent /*  return:
             }
         }
         Com->f0 = f ;                          /* f0 saved as prior value */
-        if ( Parm->PrintLevel >= 3 )
-        {
-            printf ("minstep =%14.6e, maxstep =%14.6e \n",
-                     Com->minstep, Com->maxstep) ;
-            printf ("QuadOK: %2i initial a: %14.6e f0: %14.6e dphi0: %14.6e\n",
-                    Com->QuadOK, alpha, Com->f0, dphi0) ;
-            if ( (alpha > Com->minstep) && Com->QuadOK )
-            {
-                printf("Quadratic step > minstep to boundary\n") ;
-            }
-        }
+        //if ( Parm->PrintLevel >= 3 )
+        //{
+        //    printf ("minstep =%14.6e, maxstep =%14.6e \n",
+        //             Com->minstep, Com->maxstep) ;
+        //    printf ("QuadOK: %2i initial a: %14.6e f0: %14.6e dphi0: %14.6e\n",
+        //            Com->QuadOK, alpha, Com->f0, dphi0) ;
+        //    if ( (alpha > Com->minstep) && Com->QuadOK )
+        //    {
+        //        printf("Quadratic step > minstep to boundary\n") ;
+        //    }
+        //}
 
         /* parameters in Wolfe, approximate Wolfe conditions, and in update */
         Qk = Parm->Qdecay*Qk + ONE ;
@@ -1006,19 +1006,19 @@ int asa_descent /*  return:
 
         if ( Com->AWolfe )                  /* approximate Wolfe line search*/
         {
-            if ( Parm->PrintLevel >= 3 )
-            {
-                printf ("Perform approximate Wolfe line search\n") ;
-            }
+          //if ( Parm->PrintLevel >= 3 )
+          //{
+          //      printf ("Perform approximate Wolfe line search\n") ;
+          //  }
 
             status = asa_line (dphi0, Com) ;
         }
         else                                  /* ordinary Wolfe line search */
         {
-            if ( Parm->PrintLevel >= 3 )
-            {
-                 printf ("Perform ordinary Wolfe line search\n") ;
-            }
+          //if ( Parm->PrintLevel >= 3 )
+          // {
+          //       printf ("Perform ordinary Wolfe line search\n") ;
+          //}
             status = asa_lineW (dphi0, Com) ;
         }
         /* if ordinary Wolfe line search fails, possibly try approximate
@@ -1026,11 +1026,11 @@ int asa_descent /*  return:
         if ( (status > 0) && !Com->AWolfe && (Parm->AWolfeFac > ZERO) )
         {
             Com->AWolfe = TRUE ;
-            if ( Parm->PrintLevel >= 3 )
-            {
-                printf ("Ordinary Wolfe line search fails, "
-                        "try approximate Wolfe line search\n") ;
-            }
+            //if ( Parm->PrintLevel >= 3 )
+            //{
+            //    printf ("Ordinary Wolfe line search fails, "
+            //            "try approximate Wolfe line search\n") ;
+            //}
 
             status = asa_line (dphi0, Com) ;
         }
@@ -1224,17 +1224,17 @@ int asa_descent /*  return:
             {
                 t = ZERO ;
                 for (j=0; j<nfree; j++)  t = t + d[j]*g[j] ;
-                if ( fabs(t-dphi0) > Parm->debugtol*fabs(dphi0) )
-                {
-                    printf("Warning, dphi0 != d'g!\n");
-                    printf("dphi0:%14.6e, d'g:%14.6e\n",dphi0, t) ;
-                }
+                //if ( fabs(t-dphi0) > Parm->debugtol*fabs(dphi0) )
+                //{
+                //    printf("Warning, dphi0 != d'g!\n");
+                //    printf("dphi0:%14.6e, d'g:%14.6e\n",dphi0, t) ;
+                //}
             }
         }
         else
         {
             /* search direction d = -g */
-            if ( Parm->PrintLevel >= 3 ) printf ("RESTART CG\n") ;
+          //if ( Parm->PrintLevel >= 3 ) printf ("RESTART CG\n") ;
             ginorm = ZERO ;
             pgnorm = ZERO ;
             gnorm2 = ZERO ;
@@ -1317,11 +1317,11 @@ int asa_descent /*  return:
             if ( fabs (f-Com->f0) <= Parm->AWolfeFac*Ck ) Com->AWolfe = TRUE ;
         }
 
-        if ( Parm->PrintLevel >= 2 )
-        {
-            printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
-              (int) iter, f, pgnorm, ginorm) ;
-        }
+        //if ( Parm->PrintLevel >= 2 )
+        //{
+        //    printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
+        //      (int) iter, f, pgnorm, ginorm) ;
+        //}
 
         if ( Parm->debug )
         {
@@ -1371,32 +1371,32 @@ Exit1:
     Com->cgfunc += Com->nf - nf ;
     Com->cggrad += Com->ng - ng ;
     Com->cgiter += iter ;
-    if ( Parm->PrintLevel >= 2 )
-    {
-        printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
-                (int) iter, f, pgnorm, ginorm) ;
-    }
-    if ( Parm->PrintLevel >= 1 )
-    {
-        printf ("\nCG Termination status: %i\n", status) ;
-        if ( status == -5 )
-        {
-            printf ("ginorm < tau2*pgnorm without hitting boundary\n") ;
-        }
-        if ( status == -4 )
-        {
-            printf ("ginorm >= tau2*pgnorm, many x components hit boundary\n") ;
-        }
-        else if ( status == -3 )
-        {
-            printf ("ginorm >= tau2*pgnorm, one x component hits boundary\n") ;
-        }
-        printf ("proj gradient max norm: %13.6e\n", pgnorm) ;
-        printf ("function value:         %13.6e\n", f) ;
-        printf ("cg iterations:          %13.6e\n", (double) iter) ;
-        printf ("function evaluations:   %13.6e\n", (double) Com->nf - nf) ;
-        printf ("gradient evaluations:   %13.6e\n", (double) Com->ng - ng) ;
-    }
+    //if ( Parm->PrintLevel >= 2 )
+    //{
+    //    printf ("iter: %5i f = %14.6e pgnorm = %14.6e ginorm = %14.6e\n\n",
+    //            (int) iter, f, pgnorm, ginorm) ;
+    //}
+    //if ( Parm->PrintLevel >= 1 )
+    //{
+    //    printf ("\nCG Termination status: %i\n", status) ;
+    //    if ( status == -5 )
+    //    {
+    //        printf ("ginorm < tau2*pgnorm without hitting boundary\n") ;
+    //    }
+    //    if ( status == -4 )
+    //    {
+    //        printf ("ginorm >= tau2*pgnorm, many x components hit boundary\n") ;
+    //    }
+    //    else if ( status == -3 )
+    //    {
+    //        printf ("ginorm >= tau2*pgnorm, one x component hits boundary\n") ;
+    //    }
+    //    printf ("proj gradient max norm: %13.6e\n", pgnorm) ;
+    //    printf ("function value:         %13.6e\n", f) ;
+    //    printf ("cg iterations:          %13.6e\n", (double) iter) ;
+    //    printf ("function evaluations:   %13.6e\n", (double) Com->nf - nf) ;
+    //    printf ("gradient evaluations:   %13.6e\n", (double) Com->ng - ng) ;
+    //}
     return (status) ;
 }
 
@@ -1417,28 +1417,28 @@ int asa_Wolfe
     {
 
         /* test original Wolfe conditions */
-        if ( f - Com->f0 <= alpha*Com->wolfe_hi )
-        {
-            if ( Com->cgParm->PrintLevel >= 4 )
-            {
-                printf ("wolfe f: %14.6e f0: %14.6e dphi: %14.6e\n",
-                         f, Com->f0, dphi) ;
-            }
-            return (1) ;
-        }
+      //if ( f - Com->f0 <= alpha*Com->wolfe_hi )
+      //{
+      //    if ( Com->cgParm->PrintLevel >= 4 )
+      //    {
+      //        printf ("wolfe f: %14.6e f0: %14.6e dphi: %14.6e\n",
+      //                 f, Com->f0, dphi) ;
+      //    }
+      //    return (1) ;
+      //}
         /* test approximate Wolfe conditions */
-        else if ( Com->AWolfe )
-        {
-            if ( (f <= Com->fpert) && (dphi <= Com->awolfe_hi) )
-            {
-                if ( Com->cgParm->PrintLevel >= 4 )
-                {
-                    printf ("f: %14.6e fpert: %14.6e dphi: %14.6e awolf_hi: "
-                            "%14.6e\n", f, Com->fpert, dphi, Com->awolfe_hi) ;
-                }
-                return (1) ;
-            }
-        }
+      //else if ( Com->AWolfe )
+      //{
+      //    if ( (f <= Com->fpert) && (dphi <= Com->awolfe_hi) )
+      //    {
+      //        if ( Com->cgParm->PrintLevel >= 4 )
+      //        {
+      //            printf ("f: %14.6e fpert: %14.6e dphi: %14.6e awolf_hi: "
+      //                    "%14.6e\n", f, Com->fpert, dphi, Com->awolfe_hi) ;
+      //        }
+      //        return (1) ;
+      //    }
+      //}
     }
     return (0) ;
 }
@@ -1566,11 +1566,11 @@ int asa_line
             if ( ngrow == 0 ) fquad = MIN (phi, Com->f0) ;
             if ( phi <= fquad )
             {
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("alpha: %14.6e phi: %14.6e fquad: %14.6e\n",
-                            alpha, phi, fquad) ;
-                }
+              //if ( Parm->PrintLevel >= 4 )
+              //{
+              //    printf ("alpha: %14.6e phi: %14.6e fquad: %14.6e\n",
+              //            alpha, phi, fquad) ;
+              //}
                 if ( asa_Wolfe (alpha, phi, dphi, Com) )
                 {
                     status = 0 ;
@@ -1601,11 +1601,11 @@ int asa_line
                 dphi = asa_dot (gtemp, d, nfree) ;
                 if ( dphi >= ZERO ) goto Secant ;
                 phi = asa_f (xtemp, Com) ;
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("contract, a: %14.6e b: %14.6e alpha: %14.6e phi: "
-                            "%14.6e dphi: %14.6e\n", a, b, alpha, phi, dphi) ;
-                }
+                //if ( Parm->PrintLevel >= 4 )
+                //{
+                //    printf ("contract, a: %14.6e b: %14.6e alpha: %14.6e phi: "
+                //            "%14.6e dphi: %14.6e\n", a, b, alpha, phi, dphi) ;
+                //}
                 if ( Com->QuadOK && (phi <= fquad) )
                 {
                     if ( asa_Wolfe (alpha, phi, dphi, Com) )
@@ -1641,11 +1641,11 @@ int asa_line
             asa_step (xtemp, x, d, alpha, nfree) ;
             asa_g (gtemp, xtemp, Com) ;
             dphi = asa_dot (gtemp, d, nfree) ;
-            if ( Parm->PrintLevel >= 4 )
-            {
-                printf ("expand,   a: %14.6e alpha: %14.6e phi: "
-                         "%14.6e dphi: %14.6e\n", a, alpha, phi, dphi) ;
-            }
+            //if ( Parm->PrintLevel >= 4 )
+            //{
+            //    printf ("expand,   a: %14.6e alpha: %14.6e phi: "
+            //             "%14.6e dphi: %14.6e\n", a, alpha, phi, dphi) ;
+            //}
         }
         else /* a new constraint is active */
         {
@@ -1695,11 +1695,11 @@ Secant:
     nsecant = Parm->nsecant ;
     for (iter = 1; iter <= nsecant; iter++)
     {
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("secant, a: %14.6e b: %14.6e da: %14.6e db: %14.6e\n",
-                     a, b, dphia, dphib) ;
-        }
+      //if ( Parm->PrintLevel >= 4 )
+      //{
+      //    printf ("secant, a: %14.6e b: %14.6e da: %14.6e db: %14.6e\n",
+      //             a, b, dphia, dphib) ;
+      //}
         width = Parm->gamma*(b - a) ;
         if ( -dphia <= dphib ) alpha = a - (a-b)*(dphia/(dphia-dphib)) ;
         else                   alpha = b - (a-b)*(dphib/(dphia-dphib)) ;
@@ -1725,7 +1725,7 @@ Secant:
             }
             if ( (alpha > a) && (alpha < b) )
             {
-                if ( Parm->PrintLevel >= 4 ) printf ("2nd secant\n") ;
+              //if ( Parm->PrintLevel >= 4 ) printf ("2nd secant\n") ;
                 status = asa_update (&a, &dphia, &b, &dphib, &alpha, &phi,
                           &dphi, Com) ;
                 if ( status >= 0 ) goto Exit ;
@@ -1737,7 +1737,7 @@ Secant:
         if ( b-a >= width )
         {
             alpha = .5*(b+a) ;
-            if ( Parm->PrintLevel >= 4 ) printf ("bisection\n") ;
+            //if ( Parm->PrintLevel >= 4 ) printf ("bisection\n") ;
             status = asa_update (&a, &dphia, &b, &dphib, &alpha, &phi,
                         &dphi, Com) ;
             if ( status >= 0 ) goto Exit ;
@@ -1838,11 +1838,11 @@ int asa_lineW
             if ( ngrow == 0 ) fquad = MIN (phi, Com->f0) ;
             if ( phi <= fquad )
             {
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("alpha: %14.6e phi: %14.6e fquad: %14.6e\n",
-                            alpha, phi, fquad) ;
-                }
+              //if ( Parm->PrintLevel >= 4 )
+              //{
+              //    printf ("alpha: %14.6e phi: %14.6e fquad: %14.6e\n",
+              //            alpha, phi, fquad) ;
+              //}
                 if ( asa_Wolfe (alpha, phi, dphi, Com) )
                 {
                     status = 0 ;
@@ -1875,11 +1875,11 @@ int asa_lineW
                 if ( dpsi >= ZERO ) goto Secant ;
                 phi = asa_f (xtemp, Com) ;
                 psi = phi - alpha*Com->wolfe_hi ;
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("contract, a: %14.6e b: %14.6e alpha: %14.6e phi: "
-                            "%14.6e dphi: %14.6e\n", a, b, alpha, phi, dphi) ;
-                }
+                //if ( Parm->PrintLevel >= 4 )
+                //{
+                //    printf ("contract, a: %14.6e b: %14.6e alpha: %14.6e phi: "
+                //            "%14.6e dphi: %14.6e\n", a, b, alpha, phi, dphi) ;
+                //}
                 if ( Com->QuadOK && (phi <= fquad) )
                 {
                     if ( asa_Wolfe (alpha, phi, dphi, Com) )
@@ -1916,11 +1916,11 @@ int asa_lineW
             asa_g (gtemp, xtemp, Com) ;
             dphi = asa_dot (gtemp, d, nfree) ;
             dpsi = dphi - Com->wolfe_hi ;
-            if ( Parm->PrintLevel >= 4 )
-            {
-                printf ("expand,   a: %14.6e alpha: %14.6e phi: "
-                         "%14.6e dphi: %14.6e\n", a, alpha, phi, dphi) ;
-            }
+            //if ( Parm->PrintLevel >= 4 )
+            //{
+            //    printf ("expand,   a: %14.6e alpha: %14.6e phi: "
+            //             "%14.6e dphi: %14.6e\n", a, alpha, phi, dphi) ;
+            //}
         }
         else /* a new constraint is active */
         {
@@ -1970,11 +1970,11 @@ Secant:
     nsecant = Parm->nsecant ;
     for (iter = 1; iter <= nsecant; iter++)
     {
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("secant, a: %14.6e b: %14.6e da: %14.6e db: %14.6e\n",
-                     a, b, dpsia, dpsib) ;
-        }
+      //if ( Parm->PrintLevel >= 4 )
+      //{
+      //    printf ("secant, a: %14.6e b: %14.6e da: %14.6e db: %14.6e\n",
+      //             a, b, dpsia, dpsib) ;
+      //}
         width = Parm->gamma*(b - a) ;
         if ( -dpsia <= dpsib ) alpha = a - (a-b)*(dpsia/(dpsia-dpsib)) ;
         else                   alpha = b - (a-b)*(dpsib/(dpsia-dpsib)) ;
@@ -2000,7 +2000,7 @@ Secant:
             }
             if ( (alpha > a) && (alpha < b) )
             {
-                if ( Parm->PrintLevel >= 4 ) printf ("2nd secant\n") ;
+              //if ( Parm->PrintLevel >= 4 ) printf ("2nd secant\n") ;
                 status = asa_updateW (&a, &dpsia, &b, &dpsib, &alpha, &phi,
                    &dphi, &dpsi, Com) ;
                 if ( status >= 0 ) goto Exit ;
@@ -2012,7 +2012,7 @@ Secant:
         if ( b-a >= width )
         {
             alpha = .5*(b+a) ;
-            if ( Parm->PrintLevel >= 4 ) printf ("bisection\n") ;
+            //if ( Parm->PrintLevel >= 4 ) printf ("bisection\n") ;
             status = asa_updateW (&a, &dpsia, &b, &dpsib, &alpha, &phi, &dphi,
                        &dpsi, Com) ;
             if ( status >= 0 ) goto Exit ;
@@ -2065,11 +2065,11 @@ int asa_update
     asa_step (xtemp, x, d, *alpha, nfree) ;
     *phi = asa_fg (gtemp, xtemp, Com) ;
     *dphi = asa_dot (gtemp, d, nfree) ;
-    if ( Parm->PrintLevel >= 4 )
-    {
-        printf ("update alpha: %14.6e phi: %14.6e dphi: %14.6e\n",
-                 *alpha, *phi, *dphi) ;
-    }
+    //if ( Parm->PrintLevel >= 4 )
+    //{
+    //    printf ("update alpha: %14.6e phi: %14.6e dphi: %14.6e\n",
+    //             *alpha, *phi, *dphi) ;
+    //}
     if ( asa_Wolfe (*alpha, *phi, *dphi, Com) )
     {
         status = 0 ;
@@ -2105,11 +2105,11 @@ int asa_update
         asa_step (xtemp, x, d, *alpha, nfree) ;
         *phi = asa_fg (gtemp, xtemp, Com) ;
         *dphi = asa_dot (gtemp, d, nfree) ;
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("contract, a: %14.6e alpha: %14.6e "
-                    "phi: %14.6e dphi: %14.6e\n", *a, *alpha, *phi, *dphi) ;
-        }
+        //if ( Parm->PrintLevel >= 4 )
+        //{
+        //    printf ("contract, a: %14.6e alpha: %14.6e "
+        //            "phi: %14.6e dphi: %14.6e\n", *a, *alpha, *phi, *dphi) ;
+        //}
         if ( asa_Wolfe (*alpha, *phi, *dphi, Com) )
         {
             status = 0 ;
@@ -2123,10 +2123,10 @@ int asa_update
         }
         if ( *phi <= Com->fpert )
         {
-            if ( Parm->PrintLevel >= 4 )
-            {
-                printf ("update a: %14.6e dphia: %14.6e\n", *alpha, *dphi) ;
-            }
+          //if ( Parm->PrintLevel >= 4 )
+          //{
+          //    printf ("update a: %14.6e dphia: %14.6e\n", *alpha, *dphi) ;
+          //}
             *a = *alpha ;
             *dphia = *dphi ;
         }
@@ -2135,11 +2135,11 @@ int asa_update
 Exit1:
     status = -1 ;
 Exit2:
-    if ( Parm->PrintLevel >= 3 )
-    {
-        printf ("UP a: %14.6e b: %14.6e da: %14.6e db: %14.6e status: %i\n",
-                 *a, *b, *dphia, *dphib, status) ;
-    }
+    //if ( Parm->PrintLevel >= 3 )
+    //{
+    //    printf ("UP a: %14.6e b: %14.6e da: %14.6e db: %14.6e status: %i\n",
+    //             *a, *b, *dphia, *dphib, status) ;
+    //}
     return (status) ;
 }
 
@@ -2183,11 +2183,11 @@ int asa_updateW
     psi = *phi - *alpha*Com->wolfe_hi ;
     *dphi = asa_dot (gtemp, d, nfree) ;
     *dpsi = *dphi - Com->wolfe_hi ;
-    if ( Parm->PrintLevel >= 4 )
-    {
-        printf ("update alpha: %14.6e psi: %14.6e dpsi: %14.6e\n",
-                 *alpha, psi, *dpsi) ;
-    }
+    //if ( Parm->PrintLevel >= 4 )
+    //{
+    //    printf ("update alpha: %14.6e psi: %14.6e dpsi: %14.6e\n",
+    //             *alpha, psi, *dpsi) ;
+    //}
     if ( asa_Wolfe (*alpha, *phi, *dphi, Com) )
     {
         status = 0 ;
@@ -2225,11 +2225,11 @@ int asa_updateW
         *dphi = asa_dot (gtemp, d, nfree) ;
         *dpsi = *dphi - Com->wolfe_hi ;
         psi = *phi - *alpha*Com->wolfe_hi ;
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("contract, a: %14.6e alpha: %14.6e "
-                    "phi: %14.6e dphi: %14.6e\n", *a, *alpha, *phi, *dphi) ;
-        }
+        //if ( Parm->PrintLevel >= 4 )
+        //{
+        //    printf ("contract, a: %14.6e alpha: %14.6e "
+        //            "phi: %14.6e dphi: %14.6e\n", *a, *alpha, *phi, *dphi) ;
+        //}
         if ( asa_Wolfe (*alpha, *phi, *dphi, Com) )
         {
             status = 0 ;
@@ -2243,10 +2243,10 @@ int asa_updateW
         }
         if ( psi <= Com->fpert )
         {
-            if ( Parm->PrintLevel >= 4 )
-            {
-                printf ("update a: %14.6e dpsia: %14.6e\n", *alpha, *dpsi) ;
-            }
+          //if ( Parm->PrintLevel >= 4 )
+          //{
+          //    printf ("update a: %14.6e dpsia: %14.6e\n", *alpha, *dpsi) ;
+          //}
             *a = *alpha ;
             *dpsia = *dpsi ;
         }
@@ -2255,11 +2255,11 @@ int asa_updateW
 Exit1:
     status = -1 ;
 Exit2:
-    if ( Parm->PrintLevel >= 3 )
-    {
-        printf ("UP a: %14.6e b: %14.6e da: %14.6e db: %14.6e status: %i\n",
-                 *a, *b, *dpsia, *dpsib, status) ;
-    }
+    //if ( Parm->PrintLevel >= 3 )
+    //{
+    //    printf ("UP a: %14.6e b: %14.6e da: %14.6e db: %14.6e status: %i\n",
+    //             *a, *b, *dpsia, *dpsib, status) ;
+    //}
     return (status) ;
 }
 
@@ -2419,18 +2419,18 @@ int asa_grad_proj /*return:
     fr = f ;
     fc = f ;
 
-    if ( Parm->PrintLevel >= 3 )
-    {
-        printf ("Initial stepsize in cbb: %14.6e\n", lambda) ;
-    }
+    //if ( Parm->PrintLevel >= 3 )
+    //{
+    //    printf ("Initial stepsize in cbb: %14.6e\n", lambda) ;
+    //}
 
     while ( TRUE )
     {
-        if ( Parm->PrintLevel >= 2 )
-        {
-            printf ("cbb iter: %5i f: %14.6e pgnorm: %14.6e\n\n",
-                     iter, f, pgnorm) ;
-        }
+      //if ( Parm->PrintLevel >= 2 )
+      //{
+      //    printf ("cbb iter: %5i f: %14.6e pgnorm: %14.6e\n\n",
+      //             iter, f, pgnorm) ;
+      //}
 
         if ( !Parm->GradProjOnly )
         {
@@ -2498,10 +2498,10 @@ int asa_grad_proj /*return:
         }
 
        /* start of cbb line search */
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("Linesearch in cbb, f: %14.6e gtd: %14.6e\n", f, gtd) ;
-        }
+        //if ( Parm->PrintLevel >= 4 )
+        //{
+        //    printf ("Linesearch in cbb, f: %14.6e gtd: %14.6e\n", f, gtd) ;
+        //}
         fmax = lastfvalues [0] ;
         for (i = 1; i < Parm->m; i++) fmax = MAX (fmax, lastfvalues [i]) ;
         alpha = ONE ;
@@ -2523,10 +2523,10 @@ int asa_grad_proj /*return:
 
         fcomp = MIN (fmax, fr) ;
 
-        if ( Parm->PrintLevel >= 4 )
-        {
-            printf ("fr: %14.6e fcomp: %14.6e\n", fr, fcomp) ;
-        }
+        //if ( Parm->PrintLevel >= 4 )
+        //{
+        //    printf ("fr: %14.6e fcomp: %14.6e\n", fr, fcomp) ;
+        //}
 
         /* Approximate nonmonotone Armijo line search, decrease alpha until:
            phi'(alpha) <= [2(phi_r - phi(0))/alpha] + (2 delta - 1) phi'(0) and
@@ -2538,15 +2538,15 @@ int asa_grad_proj /*return:
             fr_pert = fr + t ;
             fr = fr_pert ;
             fcomp_pert = fcomp + t ;
-            if ( Parm->PrintLevel >= 3 )
-            {
-                printf ("Perform approximate Armijo line search\n") ;
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("fr_pert: %14.6e fcomp_pert: %14.6e\n",
-                             fr_pert, fcomp_pert) ;
-                }
-            }
+            //if ( Parm->PrintLevel >= 3 )
+            //{
+            //    printf ("Perform approximate Armijo line search\n") ;
+            //    if ( Parm->PrintLevel >= 4 )
+            //    {
+            //        printf ("fr_pert: %14.6e fcomp_pert: %14.6e\n",
+            //                 fr_pert, fcomp_pert) ;
+            //    }
+            //}
 
             AArmijo_hi = (TWO*Parm->delta - ONE)*gtd ;
             if ( ftemp != ftemp ) /* function value is nan, reduce stepsize */
@@ -2624,10 +2624,10 @@ int asa_grad_proj /*return:
                 ftemp = asa_f (xtemp, Com) ;
                 ll++ ;
 
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("alpha: %14.6e ftemp: %14.6e\n", alpha, ftemp) ;
-                }
+                //if ( Parm->PrintLevel >= 4 )
+                //{
+                //    printf ("alpha: %14.6e ftemp: %14.6e\n", alpha, ftemp) ;
+                //}
 
                 if ( ftemp <= fcomp_pert )
                 {
@@ -2651,10 +2651,10 @@ int asa_grad_proj /*return:
            where phi_r = fr or fcomp. */
         else
         {
-            if ( Parm->PrintLevel >= 3 )
-            {
-                printf ("Perform ordinary Armijo line search\n") ;
-            }
+          //if ( Parm->PrintLevel >= 3 )
+          //{
+          //    printf ("Perform ordinary Armijo line search\n") ;
+          //}
 
             Armijo_hi = Parm->delta*gtd ;
             if ( ftemp != ftemp ) /* function value is nan, reduce stepsize */
@@ -2705,10 +2705,10 @@ int asa_grad_proj /*return:
                 ftemp = asa_f (xtemp, Com) ;
                 ll++ ;
 
-                if ( Parm->PrintLevel >= 4 )
-                {
-                    printf ("alpha: %14.6e ftemp: %14.6e\n", alpha, ftemp) ;
-                }
+                //if ( Parm->PrintLevel >= 4 )
+                //{
+                //    printf ("alpha: %14.6e ftemp: %14.6e\n", alpha, ftemp) ;
+                //}
 
                 if ( ftemp <= fcomp+alpha*Armijo_hi ) break ;
 
@@ -2741,11 +2741,11 @@ int asa_grad_proj /*return:
         /* end of cbbls */
 
         if ( getbound && (alpha == ONE) ) hitbound = TRUE ;
-        if ( Parm->PrintLevel >= 3 )
-        {
-            printf ("hitbound = %i freebound = %i alpha = %14.6e\n",
-                     hitbound, freebound, alpha) ;
-        }
+        //if ( Parm->PrintLevel >= 3 )
+        //{
+        //    printf ("hitbound = %i freebound = %i alpha = %14.6e\n",
+        //             hitbound, freebound, alpha) ;
+        //}
 
         if ( hitbound || freebound ) count = 0 ;
         else                         count++ ;
@@ -2943,23 +2943,23 @@ int asa_grad_proj /*return:
     Com->cbbiter += iter ;
     Com->cbbfunc += Com->nf - nf ;
     Com->cbbgrad += Com->ng - ng ;
-    if ( Parm->PrintLevel >= 2 )
-    {
-        if(status != -1) printf ("cbb iter: %5i f: %14.6e pgnorm: %14.6e\n\n",
-                                  iter, f, pgnorm) ;
-    }
-    if ( Parm->PrintLevel >= 1 )
-    {
-        printf ("\nCBB Termination status: %i\n", status) ;
-        if ( status == -1 )
-            printf ("terminate cbb iteration, branch to cg iteration\n") ;
+    //if ( Parm->PrintLevel >= 2 )
+    //{
+    //    if(status != -1) printf ("cbb iter: %5i f: %14.6e pgnorm: %14.6e\n\n",
+    //                              iter, f, pgnorm) ;
+    //}
+    //if ( Parm->PrintLevel >= 1 )
+    //{
+    //    printf ("\nCBB Termination status: %i\n", status) ;
+    //    if ( status == -1 )
+    //        printf ("terminate cbb iteration, branch to cg iteration\n") ;
 
-        printf ("proj gradient max norm: %13.6e\n", pgnorm) ;
-        printf ("function value:         %13.6e\n", f) ;
-        printf ("cbb iterations:         %13.6e\n", (double) iter) ;
-        printf ("function evaluations:   %13.6e\n", (double) Com->nf - nf) ;
-        printf ("gradient evaluations:   %13.6e\n", (double) Com->ng - ng) ;
-    }
+    //    printf ("proj gradient max norm: %13.6e\n", pgnorm) ;
+    //    printf ("function value:         %13.6e\n", f) ;
+    //    printf ("cbb iterations:         %13.6e\n", (double) iter) ;
+    //    printf ("function evaluations:   %13.6e\n", (double) Com->nf - nf) ;
+    //    printf ("gradient evaluations:   %13.6e\n", (double) Com->ng - ng) ;
+    //}
     return (status) ;
 }
 
@@ -3460,77 +3460,77 @@ void asa_printcgParms
     asacg_parm  *Parm
 )
 {
-    printf ("\nCG PARAMETERS:\n") ;
-    printf ("\n") ;
-    printf ("Wolfe line search parameter ..................... delta: %e\n",
-             Parm->delta) ;
-    printf ("Wolfe line search parameter ..................... sigma: %e\n",
-             Parm->sigma) ;
-    printf ("decay factor for bracketing interval ............ gamma: %e\n",
-             Parm->gamma) ;
-    printf ("growth factor for bracket interval ................ rho: %e\n",
-             Parm->rho) ;
-    printf ("growth factor for bracket interval after nan .. nan_rho: %e\n",
-             Parm->nan_rho) ;
-    printf ("truncation factor for cg beta ..................... eta: %e\n",
-             Parm->eta) ;
-    printf ("perturbation parameter for function value ......... eps: %e\n",
-             Parm->eps) ;
-    printf ("factor for computing average cost .............. Qdecay: %e\n",
-             Parm->Qdecay) ;
-    printf ("relative change in cost to stop QuadStep ... QuadCutOff: %e\n",
-             Parm->QuadCutOff) ;
-    printf ("stop when cost change <= feps*|f| ................. eps: %e\n",
-             Parm->feps) ;
-    printf ("cost change factor, approx Wolfe transition . AWolfeFac: %e\n",
-             Parm->AWolfeFac) ;
-    printf ("restart cg every restart_fac*n iterations . restart_fac: %e\n",
-             Parm->restart_fac) ;
-    printf ("starting guess parameter in first iteration ...... psi0: %e\n",
-             Parm->psi0) ;
-    printf ("factor multiply starting guess in quad step ...... psi1: %e\n",
-             Parm->psi1) ;
-    printf ("initial guess factor for general iteration ....... psi2: %e\n",
-             Parm->psi2) ;
-    printf ("starting step in first iteration if nonzero ...... step: %e\n",
-             Parm->step) ;
-    printf ("max expansions in line search ................. nexpand: %i\n",
-             Parm->nexpand) ;
-    printf ("max secant iterations in line search .......... nsecant: %i\n",
-             Parm->nsecant) ;
-    printf ("max cg iterations is n*maxit_fac ............ maxit_fac: %e\n",
-             Parm->maxit_fac) ;
-    printf ("total max cg iterations is n*totit_fac ...... totit_fac: %e\n",
-             Parm->totit_fac) ;
-    printf ("error tolerance when debugger turned on ..... .debugtol: %e\n",
-             Parm->debugtol) ;
-    printf ("print level (0 = none, 4 = maximum) ........ PrintLevel: %i\n",
-             Parm->PrintLevel) ;
-    printf ("\nLogical parameters:\n") ;
-    if ( Parm->PertRule )
-        printf ("    Error estimate for function value is eps*Ck\n") ;
-    else
-        printf ("    Error estimate for function value is eps\n") ;
-    if ( Parm->QuadStep )
-        printf ("    Use quadratic interpolation step\n") ;
-    else
-        printf ("    No quadratic interpolation step\n") ;
-    if ( Parm->PrintParms )
-        printf ("    Print the parameter structure\n") ;
-    else
-        printf ("    Do not print parameter structure\n") ;
-    if ( Parm->AWolfe)
-        printf ("    Approximate Wolfe line search\n") ;
-    else
-        printf ("    Wolfe line search") ;
-        if ( Parm->AWolfeFac > ZERO )
-            printf (" ... switching to approximate Wolfe\n") ;
-        else
-            printf ("\n") ;
-    if ( Parm->debug)
-        printf ("    Check for decay of cost, debugger is on\n") ;
-    else
-        printf ("    Do not check for decay of cost, debugger is off\n") ;
+  //printf ("\nCG PARAMETERS:\n") ;
+  //printf ("\n") ;
+  //printf ("Wolfe line search parameter ..................... delta: %e\n",
+  //         Parm->delta) ;
+  //printf ("Wolfe line search parameter ..................... sigma: %e\n",
+  //         Parm->sigma) ;
+  //printf ("decay factor for bracketing interval ............ gamma: %e\n",
+  //         Parm->gamma) ;
+  //printf ("growth factor for bracket interval ................ rho: %e\n",
+  //         Parm->rho) ;
+  //printf ("growth factor for bracket interval after nan .. nan_rho: %e\n",
+  //         Parm->nan_rho) ;
+  //printf ("truncation factor for cg beta ..................... eta: %e\n",
+  //         Parm->eta) ;
+  //printf ("perturbation parameter for function value ......... eps: %e\n",
+  //         Parm->eps) ;
+  //printf ("factor for computing average cost .............. Qdecay: %e\n",
+  //         Parm->Qdecay) ;
+  //printf ("relative change in cost to stop QuadStep ... QuadCutOff: %e\n",
+  //         Parm->QuadCutOff) ;
+  //printf ("stop when cost change <= feps*|f| ................. eps: %e\n",
+  //         Parm->feps) ;
+  //printf ("cost change factor, approx Wolfe transition . AWolfeFac: %e\n",
+  //         Parm->AWolfeFac) ;
+  //printf ("restart cg every restart_fac*n iterations . restart_fac: %e\n",
+  //         Parm->restart_fac) ;
+  //printf ("starting guess parameter in first iteration ...... psi0: %e\n",
+  //         Parm->psi0) ;
+  //printf ("factor multiply starting guess in quad step ...... psi1: %e\n",
+  //         Parm->psi1) ;
+  //printf ("initial guess factor for general iteration ....... psi2: %e\n",
+  //         Parm->psi2) ;
+  //printf ("starting step in first iteration if nonzero ...... step: %e\n",
+  //         Parm->step) ;
+  //printf ("max expansions in line search ................. nexpand: %i\n",
+  //         Parm->nexpand) ;
+  //printf ("max secant iterations in line search .......... nsecant: %i\n",
+  //         Parm->nsecant) ;
+  //printf ("max cg iterations is n*maxit_fac ............ maxit_fac: %e\n",
+  //         Parm->maxit_fac) ;
+  //printf ("total max cg iterations is n*totit_fac ...... totit_fac: %e\n",
+  //         Parm->totit_fac) ;
+  //printf ("error tolerance when debugger turned on ..... .debugtol: %e\n",
+  //         Parm->debugtol) ;
+  //printf ("print level (0 = none, 4 = maximum) ........ PrintLevel: %i\n",
+  //         Parm->PrintLevel) ;
+  //printf ("\nLogical parameters:\n") ;
+  //if ( Parm->PertRule )
+  //    printf ("    Error estimate for function value is eps*Ck\n") ;
+  //else
+  //    printf ("    Error estimate for function value is eps\n") ;
+  //if ( Parm->QuadStep )
+  //    printf ("    Use quadratic interpolation step\n") ;
+  //else
+  //    printf ("    No quadratic interpolation step\n") ;
+  //if ( Parm->PrintParms )
+  //    printf ("    Print the parameter structure\n") ;
+  //else
+  //    printf ("    Do not print parameter structure\n") ;
+  //if ( Parm->AWolfe)
+  //    printf ("    Approximate Wolfe line search\n") ;
+  //else
+  //    printf ("    Wolfe line search") ;
+  //    if ( Parm->AWolfeFac > ZERO )
+  //        printf (" ... switching to approximate Wolfe\n") ;
+  //    else
+  //        printf ("\n") ;
+  //if ( Parm->debug)
+  //    printf ("    Check for decay of cost, debugger is on\n") ;
+  //else
+  //    printf ("    Do not check for decay of cost, debugger is off\n") ;
 }
 
 /* =========================================================================
@@ -3543,114 +3543,114 @@ void asa_printParms
     asa_parm  *Parm
 )
 {
-    printf ("\nASA PARAMETERS:\n") ;
-    printf ("\n") ;
-    printf ("update fr if fmin not improved after L iterations.... L: %i\n",
-             Parm->L) ;
-    printf ("fmax = max (f_{k-i}, i = 0, 1, ..., min (k, m-1) )... m: %i\n",
-             Parm->m) ;
-    printf ("update fr if P previous initial stepsizes accepted... P: %i\n",
-             Parm->P) ;
-    printf ("CBB cycle length.................................... nm: %i\n",
-             Parm->nm) ;
-    printf ("criterion for updating reference value fr....... gamma1: %e\n",
-             Parm->gamma1) ;
-    printf ("criterion for updating reference value fr....... gamma2: %e\n",
-             Parm->gamma2) ;
-    printf ("max tries to find non NAN function value ...... nshrink: %i\n",
-             Parm->nshrink) ;
-    printf ("interval decay factor in NAN search ............nan_fac: %e\n",
-             Parm->nan_fac) ;
-    printf ("perturbation parameter for function value.......... eps: %e\n",
-             Parm->eps) ;
-    printf ("cost change factor, approx Armijo transition,AArmijoFac: %e\n",
-             Parm->AArmijoFac) ;
-    printf ("Armijo line search parameter .................... delta: %e\n",
-             Parm->delta) ;
-    printf ("Armijo decay factor .......................armijo_decay: %e\n",
-             Parm->armijo_decay) ;
-    printf ("criterion for Q interpolation, cbb line search,.armijo0: %e\n",
-             Parm->armijo0) ;
-    printf ("criterion for Q interpolation, cbb line search,.armijo1: %e\n",
-             Parm->armijo1) ;
-    printf ("criterion for reinitializing BB stepsize ........ gamma: %e\n",
-             Parm->gamma) ;
-    printf ("Lower bound for initial stepsize ................. lmin: %e\n",
-             Parm->lmin) ;
-    printf ("Upper bound for initial stepsize ................. lmax: %e\n",
-             Parm->lmax) ;
-    printf ("used when trying a quadratic interpolation step.. parm1: %e\n",
-             Parm->parm1) ;
-    printf ("used when trying a quadratic interpolation step.. parm2: %e\n",
-             Parm->parm2) ;
-    printf ("criterion for reinitializing the BB stepsize..... parm3: %e\n",
-             Parm->parm3) ;
-    printf ("maximum previous BB steps used when s^t y <= 0... parm4: %i\n",
-             Parm->parm4) ;
-    printf ("if ginorm < tau1*pgnorm, continue grad_proj ...... tau1: %e\n",
-             Parm->tau1) ;
-    printf ("decay factor for tau1 ...................... tau1_decay: %e\n",
-             Parm->tau1_decay) ;
-    printf ("ginorm < tau2*pgnorm => subproblem solved in cg... tau2: %e\n",
-             Parm->tau2) ;
-    printf ("decay factor for tau2 ...................... tau2_decay: %e\n",
-             Parm->tau2_decay) ;
-    printf ("max number of Armijo backtracking steps . max_backsteps: %i\n",
-             Parm->max_backsteps) ;
-    printf ("max cbb iterations in 1 pass is n*maxit_fac . maxit_fac: %e\n",
-             Parm->maxit_fac) ;
-    printf ("total number cbb iterations is n*totit_fac .. totit_fac: %e\n",
-             Parm->totit_fac) ;
-    printf ("max func evals in cbb is n*maxfunc_fac .... maxfunc_fac: %e\n",
-             Parm->maxfunc_fac) ;
-    printf ("criterion for checking undecided index set..... pgdecay: %e\n",
-             Parm->pgdecay) ;
-    printf ("perturbation of lower bounds .................. pert_lo: %e\n",
-             Parm->pert_lo) ;
-    printf ("perturbation of upper bounds .................. pert_hi: %e\n",
-             Parm->pert_hi) ;
-    printf ("factor multiplying gradient in stop condition . StopFac: %e\n",
-             Parm->StopFac) ;
-    printf ("print level (0 = none, 4 = maximum) ........ PrintLevel: %i\n",
-             Parm->PrintLevel) ;
-    printf ("\nLogical parameters:\n") ;
-    if ( Parm->PertRule )
-        printf ("    Error estimate for function value is eps*|fcomp|\n") ;
-    else
-        printf ("    Error estimate for function value is eps\n") ;
-    if ( Parm->PrintFinal )
-        printf ("    Print final cost and statistics\n") ;
-    else
-        printf ("    Do not print final cost and statistics\n") ;
-    if ( Parm->PrintParms )
-        printf ("    Print the parameter structure\n") ;
-    else
-        printf ("    Do not print parameter structure\n") ;
-    if ( Parm->AArmijo)
-        printf ("    Approximate nonmonotone Armijo line search\n") ;
-    else
-        printf ("    Nonmonotone Armijo line search") ;
-        if ( Parm->AArmijoFac > ZERO )
-            printf (" ... switching to approx nonmonotone Armijo\n") ;
-        else
-            printf ("\n") ;
-    if ( Parm->StopRule )
-    {
-        if ( Parm->StopFac == ZERO )
-        {
-            printf ("    Stopping condition based on gradient tolerance\n") ;
-        }
-        else
-        {
-            printf ("    Stopping condition uses initial grad tolerance\n") ;
-        }
-    }
-    else
-        printf ("    Stopping condition weighted by absolute cost\n") ;
-    if ( Parm->GradProjOnly )
-        printf ("    Only use the gradient projection algorithm\n") ;
-    else
-        printf ("    Apply gradient projection algorithm and cg_descent\n") ;
+  //printf ("\nASA PARAMETERS:\n") ;
+  //printf ("\n") ;
+  //printf ("update fr if fmin not improved after L iterations.... L: %i\n",
+  //         Parm->L) ;
+  //printf ("fmax = max (f_{k-i}, i = 0, 1, ..., min (k, m-1) )... m: %i\n",
+  //         Parm->m) ;
+  //printf ("update fr if P previous initial stepsizes accepted... P: %i\n",
+  //         Parm->P) ;
+  //printf ("CBB cycle length.................................... nm: %i\n",
+  //         Parm->nm) ;
+  //printf ("criterion for updating reference value fr....... gamma1: %e\n",
+  //         Parm->gamma1) ;
+  //printf ("criterion for updating reference value fr....... gamma2: %e\n",
+  //         Parm->gamma2) ;
+  //printf ("max tries to find non NAN function value ...... nshrink: %i\n",
+  //         Parm->nshrink) ;
+  //printf ("interval decay factor in NAN search ............nan_fac: %e\n",
+  //         Parm->nan_fac) ;
+  //printf ("perturbation parameter for function value.......... eps: %e\n",
+  //         Parm->eps) ;
+  //printf ("cost change factor, approx Armijo transition,AArmijoFac: %e\n",
+  //         Parm->AArmijoFac) ;
+  //printf ("Armijo line search parameter .................... delta: %e\n",
+  //         Parm->delta) ;
+  //printf ("Armijo decay factor .......................armijo_decay: %e\n",
+  //         Parm->armijo_decay) ;
+  //printf ("criterion for Q interpolation, cbb line search,.armijo0: %e\n",
+  //         Parm->armijo0) ;
+  //printf ("criterion for Q interpolation, cbb line search,.armijo1: %e\n",
+  //         Parm->armijo1) ;
+  //printf ("criterion for reinitializing BB stepsize ........ gamma: %e\n",
+  //         Parm->gamma) ;
+  //printf ("Lower bound for initial stepsize ................. lmin: %e\n",
+  //         Parm->lmin) ;
+  //printf ("Upper bound for initial stepsize ................. lmax: %e\n",
+  //         Parm->lmax) ;
+  //printf ("used when trying a quadratic interpolation step.. parm1: %e\n",
+  //         Parm->parm1) ;
+  //printf ("used when trying a quadratic interpolation step.. parm2: %e\n",
+  //         Parm->parm2) ;
+  //printf ("criterion for reinitializing the BB stepsize..... parm3: %e\n",
+  //         Parm->parm3) ;
+  //printf ("maximum previous BB steps used when s^t y <= 0... parm4: %i\n",
+  //         Parm->parm4) ;
+  //printf ("if ginorm < tau1*pgnorm, continue grad_proj ...... tau1: %e\n",
+  //         Parm->tau1) ;
+  //printf ("decay factor for tau1 ...................... tau1_decay: %e\n",
+  //         Parm->tau1_decay) ;
+  //printf ("ginorm < tau2*pgnorm => subproblem solved in cg... tau2: %e\n",
+  //         Parm->tau2) ;
+  //printf ("decay factor for tau2 ...................... tau2_decay: %e\n",
+  //         Parm->tau2_decay) ;
+  //printf ("max number of Armijo backtracking steps . max_backsteps: %i\n",
+  //         Parm->max_backsteps) ;
+  //printf ("max cbb iterations in 1 pass is n*maxit_fac . maxit_fac: %e\n",
+  //         Parm->maxit_fac) ;
+  //printf ("total number cbb iterations is n*totit_fac .. totit_fac: %e\n",
+  //         Parm->totit_fac) ;
+  //printf ("max func evals in cbb is n*maxfunc_fac .... maxfunc_fac: %e\n",
+  //         Parm->maxfunc_fac) ;
+  //printf ("criterion for checking undecided index set..... pgdecay: %e\n",
+  //         Parm->pgdecay) ;
+  //printf ("perturbation of lower bounds .................. pert_lo: %e\n",
+  //         Parm->pert_lo) ;
+  //printf ("perturbation of upper bounds .................. pert_hi: %e\n",
+  //         Parm->pert_hi) ;
+  //printf ("factor multiplying gradient in stop condition . StopFac: %e\n",
+  //         Parm->StopFac) ;
+  //printf ("print level (0 = none, 4 = maximum) ........ PrintLevel: %i\n",
+  //         Parm->PrintLevel) ;
+  //printf ("\nLogical parameters:\n") ;
+  //if ( Parm->PertRule )
+  //    printf ("    Error estimate for function value is eps*|fcomp|\n") ;
+  //else
+  //    printf ("    Error estimate for function value is eps\n") ;
+  //if ( Parm->PrintFinal )
+  //    printf ("    Print final cost and statistics\n") ;
+  //else
+  //    printf ("    Do not print final cost and statistics\n") ;
+  //if ( Parm->PrintParms )
+  //    printf ("    Print the parameter structure\n") ;
+  //else
+  //    printf ("    Do not print parameter structure\n") ;
+  //if ( Parm->AArmijo)
+  //    printf ("    Approximate nonmonotone Armijo line search\n") ;
+  //else
+  //    printf ("    Nonmonotone Armijo line search") ;
+  //    if ( Parm->AArmijoFac > ZERO )
+  //        printf (" ... switching to approx nonmonotone Armijo\n") ;
+  //    else
+  //        printf ("\n") ;
+  //if ( Parm->StopRule )
+  //{
+  //    if ( Parm->StopFac == ZERO )
+  //    {
+  //        printf ("    Stopping condition based on gradient tolerance\n") ;
+  //    }
+  //    else
+  //    {
+  //        printf ("    Stopping condition uses initial grad tolerance\n") ;
+  //    }
+  //}
+  //else
+  //    printf ("    Stopping condition weighted by absolute cost\n") ;
+  //if ( Parm->GradProjOnly )
+  //    printf ("    Only use the gradient projection algorithm\n") ;
+  //else
+  //    printf ("    Apply gradient projection algorithm and cg_descent\n") ;
 }
 /*
 Version 1.1 Change:

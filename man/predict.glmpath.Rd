@@ -9,11 +9,11 @@
   log-likelihood, or the coefficients can be computed.
 }
 \usage{
-  predict.glmpath(object, newx, newy, s, type = c("link", "response",
-                  "loglik", "coefficients"), mode = c("step",
-                  "norm.fraction", "norm", "lambda.fraction", "lambda"),
-                  weight = NULL, offset = NULL,
-                  eps = .Machine$double.eps, ...)
+  \method{predict}{glmpath}(object, newx, newy, s, type = c("link", "response",
+        "loglik", "coefficients"), mode = c("step",
+        "norm.fraction", "norm", "lambda.fraction", "lambda"),
+        weight = NULL, offset = NULL,
+        eps = .Machine$double.eps, ...)
 }
 \arguments{
   \item{object}{

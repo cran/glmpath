@@ -7,11 +7,11 @@
 \description{
   This function takes a \code{bootpath} object from
   \code{bootstrap.path} and generates the histograms or the pairwise
-  scatter plots of the bootstrap coefficients. 
+  scatter plots of the bootstrap coefficients.
 }
 \usage{
-  plot.bootpath(x, type = c("histogram", "pairplot"),
-                mfrow = NULL, mar = NULL, ...)
+  \method{plot}{bootpath}(x, type = c("histogram", "pairplot"),
+     mfrow = NULL, mar = NULL, ...)
 }
 \arguments{
   \item{x}{
@@ -25,7 +25,7 @@
     \code{type=pairplot,} the pairwise scatter plots of the bootstrap
     coefficients are generated. The red solid dot indicates the pair of
     coefficients computed using the whole data. Default is
-    \code{histogram.}    
+    \code{histogram.}
   }
   \item{mfrow}{
     determines the numbers of rows and columns of the histograms on a
@@ -45,7 +45,7 @@
   coefficients, we may then validate the chosen coefficients through a
   bootstrap analysis. \code{plot.bootstrap} summarizes the bootstrap
   results by generating the histograms or the pairwise scatter plots of
-  the bootstrap coefficients. 
+  the bootstrap coefficients.
 }
 \references{
   Bradley Efron and Robert Tibshirani (1993) \emph{An Introduction to
@@ -62,7 +62,7 @@ bootstrap.path, coxpath, glmpath
 \examples{
 data(heart.data)
 attach(heart.data)
-bootstrap.a <- bootstrap.path(x, y, B=100)
+bootstrap.a <- bootstrap.path(x, y, B=5)
 plot(bootstrap.a)
 plot(bootstrap.a, type="pairplot")
 detach(heart.data)

@@ -10,11 +10,11 @@
   \code{coefficients,} \code{aic} or \code{bic.}
 }
 \usage{
-  plot.glmpath(x, xvar = c("norm", "lambda", "step"),
-               type = c("coefficients", "aic", "bic"),
-               plot.all.steps = FALSE, xlimit = NULL, predictor = FALSE,
-               omit.zero = TRUE, breaks = TRUE, mar = NULL,
-               eps = .Machine$double.eps, main = NULL, ...)
+  \method{plot}{glmpath}(x, xvar = c("norm", "lambda", "step"),
+     type = c("coefficients", "aic", "bic"),
+     plot.all.steps = FALSE, xlimit = NULL, predictor = FALSE,
+     omit.zero = TRUE, breaks = TRUE, mar = NULL,
+     eps = .Machine$double.eps, main = NULL, ...)
 }
 \arguments{
   \item{x}{

@@ -10,10 +10,10 @@
   returned at one particular value of \eqn{\lambda.}
 }
 \usage{
-  predict.coxpath(object, data, s, type = c("coefficients", "loglik",
-                  "lp", "risk", "coxph"), mode = c("step",
-                  "norm.fraction", "norm", "lambda.fraction", "lambda"),
-                  eps = .Machine$double.eps, ...)
+  \method{predict}{coxpath}(object, data, s, type = c("coefficients", "loglik",
+        "lp", "risk", "coxph"), mode = c("step",
+        "norm.fraction", "norm", "lambda.fraction", "lambda"),
+        eps = .Machine$double.eps, ...)
 }
 \arguments{
   \item{object}{

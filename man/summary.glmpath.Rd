@@ -7,7 +7,7 @@
   This function produces an anova-type summary for a glmpath object.
 }
 \usage{
-  summary.glmpath(object, ...)
+  \method{summary}{glmpath}(object, ...)
 }
 \arguments{
   \item{object}{

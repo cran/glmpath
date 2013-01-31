@@ -7,7 +7,7 @@
   This function produces an anova-type summary for a coxpath object.
 }
 \usage{
-  summary.coxpath(object, ...)
+  \method{summary}{coxpath}(object, ...)
 }
 \arguments{
   \item{object}{

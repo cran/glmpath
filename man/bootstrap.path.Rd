@@ -19,7 +19,7 @@
     matrix of features
   }
   \item{y}{
-    response 
+    response
   }
   \item{data}{
     a list of data components. If \code{path=glmpath,} \code{data}
@@ -40,7 +40,7 @@
   }
   \item{path}{
     Bootstrap coefficients for either \code{glmpath} or \code{coxpath}
-    are computed. Default is \code{path=glmpath.} 
+    are computed. Default is \code{path=glmpath.}
   }
   \item{method}{
     For each bootstrap run, the regularization parameter is determined
@@ -83,11 +83,11 @@ coxpath, glmpath, plot.bootstrap
 \examples{
 data(heart.data)
 attach(heart.data)
-bootstrap.a <- bootstrap.path(x, y, B=100, method="bic")
+bootstrap.a <- bootstrap.path(x, y, B=5, method="bic")
 detach(heart.data)
 data(lung.data)
 attach(lung.data)
-bootstrap.b <- bootstrap.path(data=lung.data, B=100, path="coxpath")
+bootstrap.b <- bootstrap.path(data=lung.data, B=5, path="coxpath")
 detach(lung.data)
 }
 \keyword{models}
