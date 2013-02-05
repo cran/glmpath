@@ -1,7 +1,7 @@
-1f188c641ec4fa762833429b4b3689b7 *DESCRIPTION
+475d0418cc936b62b45fe77573a887ec *DESCRIPTION
 40c6aeb53830213f8f63811decc519a7 *NAMESPACE
-e1f6d96806eaa829676a6a97de577548 *R/coxpath.95.R
-ec8685245a6d10217dffa565b56eb4e2 *R/glmpath.95.R
+e1f6d96806eaa829676a6a97de577548 *R/coxpath.97.R
+ec8685245a6d10217dffa565b56eb4e2 *R/glmpath.97.R
 00837a7a4e26fc15bec2e22ca8e1f224 *data/heart.data.RData
 6cd74afa5b4c339e619a94150997ff01 *data/lung.data.RData
 ff6589decbc294cf7ea45f9b1548fb76 *man/bootstrap.path.Rd
@@ -19,7 +19,7 @@ d9703a14982ef9c933e5eab6d267c953 *man/predict.coxpath.Rd
 fcd4fd07eda773712f341f9e1b7c768e *man/predict.glmpath.Rd
 e4c49a4a866c6d9a56ec471031f60bff *man/summary.coxpath.Rd
 74e619710a14b76d553709b91d0c3323 *man/summary.glmpath.Rd
-2cb22b2c4b246a418285edfe834a18da *src/asa_cg.c
+b302fb1e1fadb22953173f8ecf162aaa *src/asa_cg.c
 f562dd368a1c42ed83349217c86b789a *src/asa_cg.h
 678916c35cb36ca4840d70803cd1ffee *src/asa_user.h
 c3527abfc9b735875ba175d6258b41df *src/solve_coxpath.c

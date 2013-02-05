@@ -1417,28 +1417,28 @@ int asa_Wolfe
     {
 
         /* test original Wolfe conditions */
-      //if ( f - Com->f0 <= alpha*Com->wolfe_hi )
-      //{
+      if ( f - Com->f0 <= alpha*Com->wolfe_hi )
+      {
       //    if ( Com->cgParm->PrintLevel >= 4 )
       //    {
       //        printf ("wolfe f: %14.6e f0: %14.6e dphi: %14.6e\n",
       //                 f, Com->f0, dphi) ;
       //    }
-      //    return (1) ;
-      //}
+          return (1) ;
+      }
         /* test approximate Wolfe conditions */
-      //else if ( Com->AWolfe )
-      //{
-      //    if ( (f <= Com->fpert) && (dphi <= Com->awolfe_hi) )
-      //    {
+      else if ( Com->AWolfe )
+      {
+          if ( (f <= Com->fpert) && (dphi <= Com->awolfe_hi) )
+          {
       //        if ( Com->cgParm->PrintLevel >= 4 )
       //        {
       //            printf ("f: %14.6e fpert: %14.6e dphi: %14.6e awolf_hi: "
       //                    "%14.6e\n", f, Com->fpert, dphi, Com->awolfe_hi) ;
       //        }
-      //        return (1) ;
-      //    }
-      //}
+              return (1) ;
+          }
+      }
     }
     return (0) ;
 }
