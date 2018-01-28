@@ -10,7 +10,7 @@
 \usage{
   cv.coxpath(data, method = c("breslow", "efron"), nfold = 5,
              fraction = seq(0, 1, length = 100),
-             mode = c("norm","lambda"), plot.it = TRUE, se = TRUE, ...)
+             mode = c("norm", "lambda"), plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
   \item{data}{

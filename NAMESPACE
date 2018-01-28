@@ -2,3 +2,16 @@ useDynLib(glmpath)
 
 export(bootstrap.path, coxpath, cv.coxpath, cv.glmpath, glmpath, plot.bootpath, plot.coxpath, plot.glmpath, predict.coxpath, predict.glmpath, print.coxpath, print.glmpath, summary.coxpath, summary.glmpath)
 
+import(stats)
+import(survival)
+import(graphics)
+
+S3method(plot, bootpath)
+S3method(plot, coxpath)
+S3method(plot, glmpath)
+S3method(predict, coxpath)
+S3method(predict, glmpath)
+S3method(print, coxpath)
+S3method(print, glmpath)
+S3method(summary, coxpath)
+S3method(summary, glmpath)
